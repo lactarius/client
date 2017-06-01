@@ -1,0 +1,40 @@
+{
+  "name": "client",
+  "version": "1.0.2",
+  "description": "customers manager",
+  "main": "src/www/index.php",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "bower install"
+  },
+  "repository": "git+https://github.com/lactarius/client.git",
+  "keywords": [
+    "client",
+    "customer",
+    "manager"
+  ],
+  "author": "Petr Blazicek",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lactarius/client/issues"
+  },
+  "homepage": "https://github.com/lactarius/client#readme",
+  "devDependencies": {
+    "del": "^2.2.2",
+    "gulp": "^3.9.1",
+    "gulp-clean-css": "^3.4.1",
+    "gulp-concat": "^2.6.1",
+    "gulp-imagemin": "^3.3.0",
+    "gulp-jshint": "^2.0.4",
+    "gulp-less": "^3.3.0",
+    "gulp-uglify": "^3.0.0",
+    "jshint": "^2.9.4",
+    "jshint-stylish": "^2.2.1"
+  },
+  "dependencies": {
+    "jshint-stylish-recolor": "^0.2.0-a"
+  }
+}

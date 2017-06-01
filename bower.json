@@ -1,0 +1,26 @@
+{
+  "name": "client",
+  "description": "customers manager",
+  "main": "src/www/index.php",
+  "authors": [
+    "Petr Blazicek"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "client",
+    "customer",
+    "manager"
+  ],
+  "homepage": "https://github.com/lactarius/client",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "^3.3.7",
+    "geocomplete": "^1.7.0"
+  }
+}
