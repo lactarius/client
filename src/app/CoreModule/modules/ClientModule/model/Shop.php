@@ -31,7 +31,7 @@ class Shop extends SimpleEntity
 	 * @ORM\Column(type="text")
 	 * @var string
 	 */
-	private $note;
+	private $info;
 
 	/**
 	 * @ORM\OneToOne(targetEntity="Address")
@@ -85,19 +85,19 @@ class Shop extends SimpleEntity
 	/**
 	 * @return string
 	 */
-	public function getNote()
+	public function getInfo()
 	{
-		return $this->note;
+		return $this->info;
 	}
 
 
 	/**
-	 * @param string $note
+	 * @param string $info
 	 * @return self (fluent interface)
 	 */
-	public function setNote( $note )
+	public function setInfo( $info )
 	{
-		$this->note = $note;
+		$this->info = $info;
 		return $this;
 	}
 

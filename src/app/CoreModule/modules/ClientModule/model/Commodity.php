@@ -25,7 +25,7 @@ class Commodity extends SimpleEntity
 	 * @ORM\Column(length=128, nullable=true)
 	 * @var string
 	 */
-	private $note;
+	private $info;
 
 	/**
 	 * @ORM\OneToMany(targetEntity="Commodity", mappedBy="parent")
@@ -47,7 +47,6 @@ class Commodity extends SimpleEntity
 	{
 		$this->children = new ArrayCollection();
 	}
-
 
 	// getters & setters
 
@@ -75,29 +74,29 @@ class Commodity extends SimpleEntity
 	/**
 	 * @return string
 	 */
-	public function getNote()
+	public function getInfo()
 	{
-		return $this->note;
+		return $this->info;
 	}
 
 
 	/**
-	 * @param string $note
+	 * @param string $info
 	 * @return self (fluent interface)
 	 */
-	public function setNote( $note )
+	public function setInfo( $info )
 	{
-		$this->note = $note;
+		$this->info = $info;
 		return $this;
 	}
 
 
 	/**
-	 * @return Commodity|array
+	 * @return Commodity|ArrayCollection
 	 */
 	public function getChildren()
 	{
-		return $this->children->toArray();
+		return $this->children;
 	}
 
 
@@ -107,10 +106,8 @@ class Commodity extends SimpleEntity
 	 */
 	public function addChild( $child )
 	{
-		if ( !$this->children->contains( $child ) ) {
-			$child->setParent( $this );
-			$this->children->add( $child );
-		}
+		$this->children->add( $child );
+		$child->setParent( $this );
 		return $this;
 	}
 
@@ -122,6 +119,7 @@ class Commodity extends SimpleEntity
 	public function removeChild( $child )
 	{
 		$this->children->removeElement( $child );
+		$child->setParent( NULL );
 		return $this;
 	}
 

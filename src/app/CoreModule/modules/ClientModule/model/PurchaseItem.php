@@ -33,6 +33,12 @@ class PurchaseItem extends SimpleEntity
 	private $amount;
 
 	/**
+	 * @ORM\ManyToOne(targetEntity="Purchase", inversedBy="items")
+	 * @var Purchase
+	 */
+	private $purchase;
+
+	/**
 	 * @ORM\ManyToOne(targetEntity="Unit")
 	 * @var Unit
 	 */

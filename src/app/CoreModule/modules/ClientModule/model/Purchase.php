@@ -2,6 +2,7 @@
 
 namespace Client\Model;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Core\Model\CreatedEntity;
 
@@ -13,6 +14,34 @@ use Core\Model\CreatedEntity;
  */
 class Purchase extends CreatedEntity
 {
-	private $shop;
+
+	/**
+	 * @ORM\Column(length=255)
+	 * @var string
+	 */
+	private $note;
+
+	/**
+	 * @ORM\ManyToOne(targetEntity="Client", inversedBy="purchases")
+	 * @var Client
+	 */
+	private $client;
+
+	/**
+	 * @ORM\ManyToOne(targetEntity="Card")
+	 * @var Card
+	 */
 	private $card;
+
+	/**
+	 * @ORM\ManyToOne(targetEntity="Shop")
+	 * @var Shop
+	 */
+	private $shop;
+
+	/**
+	 * @ORM\OneToMany(targetEntity="PurchaseItem", mappedBy="purchase")
+	 * @var PurchaseItem|ArrayCollection
+	 */
+	private $items;
 }
