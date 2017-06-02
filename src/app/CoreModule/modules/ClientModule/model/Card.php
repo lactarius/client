@@ -43,7 +43,7 @@ class Card extends CommonEntity
 	/**
 	 * @return string
 	 */
-	public function getNumber ()
+	public function getNumber()
 	{
 		return $this->number;
 	}
@@ -53,7 +53,7 @@ class Card extends CommonEntity
 	 * @param string $number
 	 * @return self (fluent interface)
 	 */
-	public function setNumber ( $number )
+	public function setNumber( $number )
 	{
 		$this->number = $number;
 		return $this;
@@ -63,7 +63,7 @@ class Card extends CommonEntity
 	/**
 	 * @return int
 	 */
-	public function getType ()
+	public function getType()
 	{
 		return $this->type;
 	}
@@ -73,7 +73,7 @@ class Card extends CommonEntity
 	 * @param int $type
 	 * @return self (fluent interface)
 	 */
-	public function setType ( $type )
+	public function setType( $type )
 	{
 		$this->type = $type;
 		return $this;
@@ -83,7 +83,7 @@ class Card extends CommonEntity
 	/**
 	 * @return Client
 	 */
-	public function getClient ()
+	public function getClient()
 	{
 		return $this->client;
 	}
@@ -93,7 +93,7 @@ class Card extends CommonEntity
 	 * @param Client $client
 	 * @return self (fluent interface)
 	 */
-	public function setClient ( $client )
+	public function setClient( $client )
 	{
 		$this->client = $client;
 		return $this;
