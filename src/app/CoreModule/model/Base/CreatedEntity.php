@@ -10,39 +10,36 @@ use Nette\Utils\DateTime;
  *
  * - Identified
  * - Create timestamp saved
- * - Update timestamp saved
- * - Soft delete timestamp saved
  *
  * @ORM\MappedSuperclass
+ * @ORM\HasLifecycleCallbacks
  *
  * @author Petr Blazicek 2017
  */
-class CommonEntity extends UpdatedEntity
+class CreatedEntity extends SimpleEntity
 {
 
 	/**
 	 * @ORM\Column(type="datetimetz")
 	 * @var DateTime
 	 */
-	protected $deleted;
+	protected $created;
 
 
 	/**
 	 * @return DateTime
 	 */
-	public function getDeleted()
+	public function getCreated()
 	{
-		return $this->deleted;
+		return $this->created;
 	}
 
 
 	/**
-	 * @param DateTime $deleted
-	 * @return self (fluent interface)
+	 * @ORM\PrePersist
 	 */
-	public function setDeleted( $deleted )
+	public function prePersist()
 	{
-		$this->deleted = $deleted;
-		return $this;
+		$this->created = new DateTime();
 	}
 }

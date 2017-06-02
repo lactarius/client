@@ -20,7 +20,8 @@
 		"kdyby/doctrine": "@dev",
 		"kdyby/events": "^3.0",
 		"flame/modules": "dev-master",
-		"tomaj/nette-bootstrap-form": "^1.2"
+		"tomaj/nette-bootstrap-form": "^1.2",
+		"majkl578/nette-identity-doctrine": "^2.2"
 	},
 	"require-dev": {
 		"nette/tester": "@dev"

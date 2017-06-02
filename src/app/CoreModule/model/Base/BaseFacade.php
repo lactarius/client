@@ -7,24 +7,27 @@ use Kdyby\Doctrine\EntityManager;
 
 /**
  * Class BaseFacade
- * 
+ *
  * Project facades predecessor
- * 
+ *
  * Common methods:
- * 
+ *
  * - prepareEntity
  * - saveAll
- * 
- * M!	- slightly magic
- * M!!	- medium magic
- * M!!!	- strongly magic
+ *
+ * M!    - slightly magic
+ * M!!    - medium magic
+ * M!!!    - strongly magic
  *
  * @author Petr Blazicek 2016
  */
 class BaseFacade extends \Nette\Object
 {
 
+	// simplest entity
 	const BASE_ENTITY = '\Core\Model\SimpleEntity';
+	// store currency / weight as integer (move decimal point)
+	const SHOP_SCALE = 10000;
 
 
 	/** @var EntityManager */
@@ -39,7 +42,7 @@ class BaseFacade extends \Nette\Object
 
 	/**
 	 * Returns existing or new entity (M!)
-	 * 
+	 *
 	 * @param mixed $class
 	 * @param array|Traversable $data
 	 * @return mixed
@@ -54,7 +57,7 @@ class BaseFacade extends \Nette\Object
 	/**
 	 * Persist given entity(ies) (M!)
 	 * if needed
-	 * 
+	 *
 	 * @param mixed|mixed[] $group
 	 * @param bool $flush
 	 * @return self (fluent interface)
@@ -81,7 +84,7 @@ class BaseFacade extends \Nette\Object
 
 	/**
 	 * Returns browser first language
-	 * 
+	 *
 	 * @return string
 	 */
 	protected function getPreferredLanguage()

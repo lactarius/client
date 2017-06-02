@@ -1,14 +1,14 @@
 <?php
 
-namespace CoreModule;
+namespace ClientModule;
 
 
 /**
  * Class DefaultPresenter
  *
- * @author Petr Blazicek 2016
+ * @author Petr Blazicek 2017
  */
 class DefaultPresenter extends BasePresenter
 {
-
+	
 }

@@ -21,6 +21,7 @@ abstract class BasePresenter extends Nette\Application\UI\Presenter
 		$dir			 = dirname( $this->reflection->getFileName() );
 		$layoutFiles[]	 = $dir . '/../../../../presenters/templates/@layout.latte';
 		$layoutFiles[]	 = $dir . '/../../presenters/templates/@layout.latte';
+
 		return $layoutFiles;
 	}
 
