@@ -71,15 +71,220 @@ class Client extends CommonEntity implements IIdentity
 	 */
 	private $purchases;
 
+
 	/**
 	 * Client constructor.
 	 */
-	public function __construct ()
+	public function __construct()
 	{
 		$this->cards = new ArrayCollection();
+		$this->purchases = new ArrayCollection();
 	}
 
 
 	// getters & setters
 
+
+	/**
+	 * @return string
+	 */
+	public function getName()
+	{
+		return $this->name;
+	}
+
+
+	/**
+	 * @param string $name
+	 * @return self (fluent interface)
+	 */
+	public function setName( $name )
+	{
+		$this->name = $name;
+		return $this;
+	}
+
+
+	/**
+	 * @return string
+	 */
+	public function getSurname()
+	{
+		return $this->surname;
+	}
+
+
+	/**
+	 * @param string $surname
+	 * @return self (fluent interface)
+	 */
+	public function setSurname( $surname )
+	{
+		$this->surname = $surname;
+		return $this;
+	}
+
+
+	/**
+	 * @return string
+	 */
+	public function getEmail()
+	{
+		return $this->email;
+	}
+
+
+	/**
+	 * @param string $email
+	 * @return self (fluent interface)
+	 */
+	public function setEmail( $email )
+	{
+		$this->email = $email;
+		return $this;
+	}
+
+
+	/**
+	 * @return string
+	 */
+	public function getPassword()
+	{
+		return $this->password;
+	}
+
+
+	/**
+	 * @param string $password
+	 * @return self (fluent interface)
+	 */
+	public function setPassword( $password )
+	{
+		$this->password = $password;
+		return $this;
+	}
+
+
+	/**
+	 * @return string
+	 */
+	public function getRoles()
+	{
+		return $this->roles;
+	}
+
+
+	/**
+	 * @param string $roles
+	 * @return self (fluent interface)
+	 */
+	public function setRoles( $roles )
+	{
+		$this->roles = $roles;
+		return $this;
+	}
+
+
+	/**
+	 * @return Address
+	 */
+	public function getAddress()
+	{
+		return $this->address;
+	}
+
+
+	/**
+	 * @param Address $address
+	 * @return self (fluent interface)
+	 */
+	public function setAddress( $address )
+	{
+		$this->address = $address;
+		return $this;
+	}
+
+
+	/**
+	 * @return Profile
+	 */
+	public function getProfile()
+	{
+		return $this->profile;
+	}
+
+
+	/**
+	 * @param Profile $profile
+	 * @return self (fluent interface)
+	 */
+	public function setProfile( $profile )
+	{
+		$this->profile = $profile;
+		return $this;
+	}
+
+
+	/**
+	 * @return Card|ArrayCollection
+	 */
+	public function getCards()
+	{
+		return $this->cards;
+	}
+
+
+	/**
+	 * @param Card $card
+	 * @return self (fluent interface)
+	 */
+	public function addCard( $card )
+	{
+		$this->cards->add( $card );
+		$card->setClient( $this );
+		return $this;
+	}
+
+
+	/**
+	 * @param Card $card
+	 * @return self (fluent interface)
+	 */
+	public function removeCard( $card )
+	{
+		$this->cards->removeElement( $card );
+		return $this;
+	}
+
+
+	/**
+	 * @return Purchase|ArrayCollection
+	 */
+	public function getPurchases()
+	{
+		return $this->purchases;
+	}
+
+
+	/**
+	 * @param Purchase $purchase
+	 * @return self (fluent interface)
+	 */
+	public function addPurchase( $purchase )
+	{
+		$this->purchases->add( $purchase );
+		$purchase->setClient( $this );
+		return $this;
+	}
+
+
+	/**
+	 * @param Purchase $purchase
+	 * @return self (fluent interface)
+	 */
+	public function removePurchase( $purchase )
+	{
+		$this->purchases->removeElement( $purchase );
+		return $this;
+	}
 }
