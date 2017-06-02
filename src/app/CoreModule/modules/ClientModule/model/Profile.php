@@ -36,23 +36,23 @@ class Profile extends SimpleEntity
 	private $photo;
 
 
+	// getters & setters
+
+
 	/**
 	 * @return int
 	 */
-	public function getSex ()
+	public function getSex()
 	{
 		return $this->sex;
 	}
-
-
-	// getters & setters
 
 
 	/**
 	 * @param int $sex
 	 * @return self (fluent interface)
 	 */
-	public function setSex ( $sex )
+	public function setSex( $sex )
 	{
 		$this->sex = $sex;
 		return $this;
@@ -62,7 +62,7 @@ class Profile extends SimpleEntity
 	/**
 	 * @return string
 	 */
-	public function getPhone ()
+	public function getPhone()
 	{
 		return $this->phone;
 	}
@@ -72,7 +72,7 @@ class Profile extends SimpleEntity
 	 * @param string $phone
 	 * @return self (fluent interface)
 	 */
-	public function setPhone ( $phone )
+	public function setPhone( $phone )
 	{
 		$this->phone = $phone;
 		return $this;
@@ -82,7 +82,7 @@ class Profile extends SimpleEntity
 	/**
 	 * @return string
 	 */
-	public function getPhoto ()
+	public function getPhoto()
 	{
 		return $this->photo;
 	}
@@ -92,7 +92,7 @@ class Profile extends SimpleEntity
 	 * @param string $photo
 	 * @return self (fluent interface)
 	 */
-	public function setPhoto ( $photo )
+	public function setPhoto( $photo )
 	{
 		$this->photo = $photo;
 		return $this;
