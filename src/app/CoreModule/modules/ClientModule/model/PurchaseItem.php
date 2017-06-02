@@ -39,16 +39,16 @@ class PurchaseItem extends SimpleEntity
 	private $purchase;
 
 	/**
-	 * @ORM\ManyToOne(targetEntity="Unit")
-	 * @var Unit
-	 */
-	private $unit;
-
-	/**
 	 * @ORM\ManyToOne(targetEntity="Commodity")
 	 * @var Commodity
 	 */
 	private $commodity;
+
+	/**
+	 * @ORM\ManyToOne(targetEntity="Unit")
+	 * @var Unit
+	 */
+	private $unit;
 
 	// getters & setters
 
@@ -114,21 +114,21 @@ class PurchaseItem extends SimpleEntity
 
 
 	/**
-	 * @return Unit
+	 * @return Purchase
 	 */
-	public function getUnit()
+	public function getPurchase()
 	{
-		return $this->unit;
+		return $this->purchase;
 	}
 
 
 	/**
-	 * @param Unit $unit
+	 * @param Purchase $purchase
 	 * @return self (fluent interface)
 	 */
-	public function setUnit( $unit )
+	public function setPurchase( $purchase )
 	{
-		$this->unit = $unit;
+		$this->purchase = $purchase;
 		return $this;
 	}
 
@@ -149,6 +149,26 @@ class PurchaseItem extends SimpleEntity
 	public function setCommodity( $commodity )
 	{
 		$this->commodity = $commodity;
+		return $this;
+	}
+
+
+	/**
+	 * @return Unit
+	 */
+	public function getUnit()
+	{
+		return $this->unit;
+	}
+
+
+	/**
+	 * @param Unit $unit
+	 * @return self (fluent interface)
+	 */
+	public function setUnit( $unit )
+	{
+		$this->unit = $unit;
 		return $this;
 	}
 }
