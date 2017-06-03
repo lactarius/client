@@ -1,26 +1,41 @@
-# addressor
-Search address on map / Get address from map by pointing using Google Geocoding API. The address can be with one click saved to the database with anti-redundant principle.
+# client
 
 ## Installation
 Nette directories & bash scripts:  
-`chmod a+w src/temp src/log tests/tmp`  
-`chmod +x bin/*`  
+```
+chmod a+w src/temp src/log tests/tmp
+chmod +x bin/*
+```
 
-### PHP packages:  
-`composer install`  
+#### PHP packages:  
+```
+composer install
+```
 
-### Node.js packages:  
-`npm install`  
+#### Node.js & Bower packages:
+```
+npm install --global yarn gulp
+yarn
+gulp
+```
 
-### Bower packages:  
-`bower install`  
+#### Database:  
+```
+cp src/app/config/config.local.sample.neon src/app/config/config.local.neon
+```
+In config.local.neon edit:
+```
+user
+password
+dbname
+```
+Create empty database `dbname`.
 
-### Database:  
-`cp src/app/config/config.local.sample.neon src/app/config/config.local.neon`  
-Edit username, password and database name in config.local.neon.  
-Then create empty database.  
-Create tables:  
-`./bin/r.sh orm:schema-tool:create`  
-Import countries into database - from the res/countries.sql file.  
-
-### That's all!
+Let Doctrine generate tables:
+```
+./bin/r.sh orm:schema-tool:create
+```
+Manually import countries into database, e.g.:
+```
+mysql -u user -p dbname < res/countries.sql
+```

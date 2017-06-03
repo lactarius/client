@@ -25,6 +25,7 @@ doctrine:
 	dbname: lcdb
 
 includes:
+	- includes/client.neon			# client module (customer manager)
 	- includes/location.neon		# location module (using Google maps)
 	- includes/core.neon			# base module
 	- includes/doctrine.neon		# doctrine forever

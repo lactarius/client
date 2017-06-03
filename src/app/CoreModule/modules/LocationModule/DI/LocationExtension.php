@@ -15,13 +15,13 @@ class LocationExtension extends \Nette\DI\CompilerExtension
 	implements \Kdyby\Doctrine\DI\IEntityProvider, \Flame\Modules\Providers\IRouterProvider
 {
 
-	public function getEntityMappings ()
+	public function getEntityMappings()
 	{
 		return [ 'Location\Model' => __DIR__ . '/../model' ];
 	}
 
 
-	public function getRoutesDefinition ()
+	public function getRoutesDefinition()
 	{
 		$routeList = new RouteList( 'Location' );
 		$routeList[] = new Route( 'location/<presenter>/<action>[/<id>]',

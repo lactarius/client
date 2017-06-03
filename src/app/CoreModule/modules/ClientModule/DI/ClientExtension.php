@@ -14,13 +14,13 @@ use Nette\DI\CompilerExtension;
 class ClientExtension extends CompilerExtension implements IEntityProvider, IRouterProvider
 {
 
-	public function getEntityMappings ()
+	public function getEntityMappings()
 	{
 		return [ 'Client\Model' => __DIR__ . '/../model' ];
 	}
 
 
-	public function getRoutesDefinition ()
+	public function getRoutesDefinition()
 	{
 		$routeList = new RouteList( 'Client' );
 		$routeList[] = new Route( 'client/<presenter>/<action>[/<id>]',

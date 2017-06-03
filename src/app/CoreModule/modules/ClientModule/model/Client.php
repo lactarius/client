@@ -48,7 +48,7 @@ class Client extends CommonEntity implements IIdentity
 	private $roles;
 
 	/**
-	 * @ORM\OneToOne(targetEntity="Address")
+	 * @ORM\OneToOne(targetEntity="Location\Model\Address")
 	 * @var Address
 	 */
 	private $address;

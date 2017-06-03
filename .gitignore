@@ -1,4 +1,4 @@
-res
+src/app/config/config.local.neon
 src/log/*
 src/temp/cache/*
 src/temp/proxies/*
@@ -13,11 +13,7 @@ src/www/images/*
 vendor/*
 !vendor/others
 
-nbproject
-.idea
-
 !.gitignore
 !.gitkeep
 !.htaccess
 !web.config
-src/app/config/config.local.neon

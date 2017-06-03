@@ -34,7 +34,7 @@ class Shop extends SimpleEntity
 	private $info;
 
 	/**
-	 * @ORM\OneToOne(targetEntity="Address")
+	 * @ORM\OneToOne(targetEntity="Location\Model\Address")
 	 * @var Address
 	 */
 	private $address;
