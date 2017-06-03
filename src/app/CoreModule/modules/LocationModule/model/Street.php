@@ -7,7 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * Class Street
- * 
+ *
  * @ORM\Entity
  * @ORM\Table(name="lc_street", options={"collate"="utf8_czech_ci"})
  *
@@ -42,6 +42,4 @@ class Street extends \Core\Model\SimpleEntity
 		$this->name = $name;
 		return $this;
 	}
-
-
 }

@@ -8,7 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * Class City
- * 
+ *
  * @ORM\Entity
  * @ORM\Table(name="lc_city")
  *
@@ -62,6 +62,4 @@ class City extends SimpleEntity
 		$this->nameEng = $nameEng;
 		return $this;
 	}
-
-
 }

@@ -29,16 +29,10 @@ class Region extends SimpleEntity
 	 */
 	private $nameEng;
 
-	/**
-	 * @ORM\ManyToOne(targetEntity="Country", fetch="LAZY")
-	 * @var Country
-	 */
-	private $country;
 
-
-	public function __construct( $name, Country $country )
+	public function __construct( $name)
 	{
-		$this->setName( $name )->setCountry( $country );
+		$this->setName( $name );
 	}
 
 
@@ -68,19 +62,4 @@ class Region extends SimpleEntity
 		$this->nameEng = $nameEng;
 		return $this;
 	}
-
-
-	public function getCountry()
-	{
-		return $this->country;
-	}
-
-
-	public function setCountry( Country $country )
-	{
-		$this->country = $country;
-		return $this;
-	}
-
-
 }

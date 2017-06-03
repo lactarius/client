@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "b497c9bf823788b2a433a903f610435f",
+    "content-hash": "f08165378df869cef523f50caedbed9a",
     "packages": [
         {
             "name": "doctrine/annotations",
@@ -2616,6 +2616,53 @@
                 "nette"
             ],
             "time": "2017-01-18T14:14:42+00:00"
+        },
+        {
+            "name": "uestla/twigrid",
+            "version": "6.0.8",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/uestla/twigrid.git",
+                "reference": "26d183c8548051c29b594149b3a92be66774195d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/uestla/twigrid/zipball/26d183c8548051c29b594149b3a92be66774195d",
+                "reference": "26d183c8548051c29b594149b3a92be66774195d",
+                "shasum": ""
+            },
+            "require": {
+                "nette/application": "^2.3",
+                "nette/forms": "^2.3",
+                "nette/http": "^2.3",
+                "nette/utils": "^2.3",
+                "php": ">= 5.3.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "TwiGrid": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Petr Kessler",
+                    "homepage": "http://kesspess.1991.cz",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Experimental DataGrid for Nette Framework",
+            "homepage": "http://github.com/uestla/twigrid",
+            "keywords": [
+                "addon",
+                "datagrid",
+                "nette"
+            ],
+            "time": "2016-03-05T00:19:41+00:00"
         }
     ],
     "packages-dev": [

@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
  *
  * @ORM\Entity
  * @ORM\Table(name="lc_postal", options={"collate"="utf8_czech_ci"})
- * 
+ *
  * @author Petr Blazicek 2016
  */
 class Postal extends \Core\Model\SimpleEntity
@@ -61,6 +61,4 @@ class Postal extends \Core\Model\SimpleEntity
 		$this->name = $name;
 		return $this;
 	}
-
-
 }

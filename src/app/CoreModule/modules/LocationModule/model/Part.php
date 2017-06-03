@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
  *
  * @ORM\Entity
  * @ORM\Table(name="lc_part", options={"collate"="utf8_czech_ci"})
- * 
+ *
  * @author Petr Blazicek 2016
  */
 class Part extends \Core\Model\SimpleEntity
@@ -42,6 +42,4 @@ class Part extends \Core\Model\SimpleEntity
 		$this->name = $name;
 		return $this;
 	}
-
-
 }

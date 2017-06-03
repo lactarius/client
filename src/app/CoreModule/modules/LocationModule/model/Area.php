@@ -10,11 +10,17 @@ use Doctrine\ORM\Mapping as ORM;
  *
  * @ORM\Entity
  * @ORM\Table(name="lc_area", options={"collate"="utf8_czech_ci"})
- * 
+ *
  * @author Petr Blazicek 2016
  */
 class Area extends \Core\Model\SimpleEntity
 {
+
+	/**
+	 * @ORM\ManyToOne(targetEntity="Country", fetch="LAZY")
+	 * @var Country
+	 */
+	private $country;
 
 	/**
 	 * @ORM\ManyToOne(targetEntity="Region", cascade={"all"}, fetch="LAZY")
@@ -55,82 +61,143 @@ class Area extends \Core\Model\SimpleEntity
 
 	// getters & setters
 
+
+	/**
+	 * @return Country
+	 */
+	public function getCountry()
+	{
+		return $this->country;
+	}
+
+
+	/**
+	 * @param Country $country
+	 * @return self (fluent interface)
+	 */
+	public function setCountry( $country )
+	{
+		$this->country = $country;
+		return $this;
+	}
+
+
+	/**
+	 * @return Region
+	 */
 	public function getRegion()
 	{
 		return $this->region;
 	}
 
 
-	public function setRegion( Region $region )
+	/**
+	 * @param Region $region
+	 * @return self (fluent interface)
+	 */
+	public function setRegion( $region = NULL )
 	{
 		$this->region = $region;
 		return $this;
 	}
 
 
+	/**
+	 * @return City
+	 */
 	public function getCity()
 	{
 		return $this->city;
 	}
 
 
-	public function setCity( City $city )
+	/**
+	 * @param City $city
+	 * @return self (fluent interface)
+	 */
+	public function setCity( $city )
 	{
 		$this->city = $city;
 		return $this;
 	}
 
 
+	/**
+	 * @return Postal
+	 */
 	public function getPostal()
 	{
 		return $this->postal;
 	}
 
 
-	public function setPostal( Postal $postal = NULL )
+	/**
+	 * @param Postal $postal
+	 * @return self (fluent interface)
+	 */
+	public function setPostal( $postal = NULL )
 	{
 		$this->postal = $postal;
 		return $this;
 	}
 
 
+	/**
+	 * @return District
+	 */
 	public function getDistrict()
 	{
 		return $this->district;
 	}
 
 
-	public function setDistrict( District $district = NULL )
+	/**
+	 * @param District $district
+	 * @return self (fluent interface)
+	 */
+	public function setDistrict( $district = NULL )
 	{
 		$this->district = $district;
 		return $this;
 	}
 
 
+	/**
+	 * @return Part
+	 */
 	public function getPart()
 	{
 		return $this->part;
 	}
 
 
-	public function setPart( Part $part = NULL )
+	/**
+	 * @param Part $part
+	 * @return self (fluent interface)
+	 */
+	public function setPart( $part = NULL )
 	{
 		$this->part = $part;
 		return $this;
 	}
 
 
+	/**
+	 * @return Street
+	 */
 	public function getStreet()
 	{
 		return $this->street;
 	}
 
 
-	public function setStreet( Street $street = NULL )
+	/**
+	 * @param Street $street
+	 * @return self (fluent interface)
+	 */
+	public function setStreet( $street = NULL )
 	{
 		$this->street = $street;
 		return $this;
 	}
-
-
 }

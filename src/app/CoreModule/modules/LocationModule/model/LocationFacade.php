@@ -25,31 +25,30 @@ class LocationFacade extends BaseFacade
 
 	/**
 	 * Searches / creates Country entity
-	 * 
+	 *
 	 * @param string $code 2 char country code
 	 * @return Country
 	 */
 	public function getCountry( $code )
 	{
 		if ( strlen( $code ) != self::DATA_MIN_LENGTH ) return NULL;
+
 		return $this->em->getRepository( Country::class )->findOneBy( [ 'codeAlpha2' => $code ] );
 	}
 
 
 	/**
 	 * Searches / creates Region entity
-	 * 
+	 *
 	 * @param string $name
-	 * @param string $code
 	 * @return Region
 	 */
-	public function getRegion( $name, $code )
+	public function getRegion( $name )
 	{
 		if ( strlen( $name ) < self::DATA_MIN_LENGTH ) return NULL;
 
 		$region = $this->em->getRepository( Region::class )
-				->findOneBy( [ 'name' => $name, 'country.codeAlpha2' => $code ] ) ?: new Region( $name,
-																					 $this->getCountry( $code ) );
+			->findOneBy( [ 'name' => $name ] ) ?: new Region( $name );
 		$this->saveAll( $region );
 
 		return $region;
@@ -58,7 +57,7 @@ class LocationFacade extends BaseFacade
 
 	/**
 	 * Searches / creates City entity
-	 * 
+	 *
 	 * @param string $name
 	 * @return City
 	 */
@@ -66,8 +65,8 @@ class LocationFacade extends BaseFacade
 	{
 		if ( strlen( $name ) < self::DATA_MIN_LENGTH ) return NULL;
 
-		$city = $this->em->getRepository( City::class )->findOneBy( [ 'name' => $name ] )
-				?: new City( $name );
+		$city = $this->em->getRepository( City::class )
+			->findOneBy( [ 'name' => $name ] ) ?: new City( $name );
 		$this->saveAll( $city );
 
 		return $city;
@@ -76,7 +75,7 @@ class LocationFacade extends BaseFacade
 
 	/**
 	 * Searches / creates Postal entity
-	 * 
+	 *
 	 * @param string $code
 	 * @return Postal
 	 */
@@ -84,8 +83,8 @@ class LocationFacade extends BaseFacade
 	{
 		if ( strlen( $code ) < self::DATA_MIN_LENGTH ) return NULL;
 
-		$postal = $this->em->getRepository( Postal::class )->findOneBy( [ 'code' => $code ] )
-				?: new Postal( $code );
+		$postal = $this->em->getRepository( Postal::class )
+			->findOneBy( [ 'code' => $code ] ) ?: new Postal( $code );
 		$this->saveAll( $postal );
 
 		return $postal;
@@ -94,7 +93,7 @@ class LocationFacade extends BaseFacade
 
 	/**
 	 * Searches / creates District entity
-	 * 
+	 *
 	 * @param string $name
 	 * @return District
 	 */
@@ -102,8 +101,8 @@ class LocationFacade extends BaseFacade
 	{
 		if ( strlen( $name ) < self::DATA_MIN_LENGTH ) return NULL;
 
-		$district = $this->em->getRepository( District::class )->findOneBy( [ 'name' => $name ] )
-				?: new District( $name );
+		$district = $this->em->getRepository( District::class )
+			->findOneBy( [ 'name' => $name ] ) ?: new District( $name );
 		$this->saveAll( $district );
 
 		return $district;
@@ -112,7 +111,7 @@ class LocationFacade extends BaseFacade
 
 	/**
 	 * Searches / creates Part entity
-	 * 
+	 *
 	 * @param string $name
 	 * @return Part
 	 */
@@ -120,8 +119,8 @@ class LocationFacade extends BaseFacade
 	{
 		if ( strlen( $name ) < self::DATA_MIN_LENGTH ) return NULL;
 
-		$part = $this->em->getRepository( Part::class )->findOneBy( [ 'name' => $name ] )
-				?: new Part( $name );
+		$part = $this->em->getRepository( Part::class )
+			->findOneBy( [ 'name' => $name ] ) ?: new Part( $name );
 		$this->saveAll( $part );
 
 		return $part;
@@ -130,7 +129,7 @@ class LocationFacade extends BaseFacade
 
 	/**
 	 * Searches / creates Street entity
-	 * 
+	 *
 	 * @param string $name
 	 * @return Street
 	 */
@@ -138,8 +137,8 @@ class LocationFacade extends BaseFacade
 	{
 		if ( strlen( $name ) < self::DATA_MIN_LENGTH ) return NULL;
 
-		$street = $this->em->getRepository( Street::class )->findOneBy( [ 'name' => $name ] )
-				?: new Street( $name );
+		$street = $this->em->getRepository( Street::class )
+			->findOneBy( [ 'name' => $name ] ) ?: new Street( $name );
 		$this->saveAll( $street );
 
 		return $street;
@@ -148,13 +147,14 @@ class LocationFacade extends BaseFacade
 
 	/**
 	 * Searches / creates Area entity
-	 * 
+	 *
 	 * @param array $data
 	 * @return Area
 	 */
 	public function getArea( $data )
 	{
-		$region = $this->getRegion( $data[ 'region' ], $data[ 'country' ] );
+		$country = $this->getCountry( $data[ 'country' ] );
+		$region = $this->getRegion( $data[ 'region' ] );
 		$city = $this->getCity( $data[ 'city' ] );
 		$postal = $this->getPostal( $data[ 'postal' ] );
 		$district = $this->getDistrict( $data[ 'district' ] );
@@ -163,24 +163,26 @@ class LocationFacade extends BaseFacade
 
 		$qb = $this->em->getRepository( Area::class )->createQueryBuilder( 'a' );
 
-		$qb->where( 'a.region = :region' )
+		$qb->where( 'a.country = :country' )
+			->andWhere( 'a.region = :region OR a.region IS NULL' )
 			->andWhere( 'a.city = :city' )
 			->andWhere( 'a.postal = :postal OR a.postal IS NULL' )
 			->andWhere( 'a.district = :district OR a.district IS NULL' )
 			->andWhere( 'a.part = :part OR a.part IS NULL' )
 			->andWhere( 'a.street = :street OR a.street IS NULL' )
 			->setParameters( [
-				'region'	 => $region,
-				'city'		 => $city,
-				'postal'	 => $postal,
-				'district'	 => $district,
-				'part'		 => $part,
-				'street'	 => $street,
+				'country'  => $country,
+				'region'   => $region,
+				'city'     => $city,
+				'postal'   => $postal,
+				'district' => $district,
+				'part'     => $part,
+				'street'   => $street,
 			] );
 
 		if ( !$area = $qb->getQuery()->getOneOrNullResult() ) {
 			$area = new Area();
-			$area->setRegion( $region )->setCity( $city )->setPostal( $postal )
+			$area->setCountry( $country )->setRegion( $region )->setCity( $city )->setPostal( $postal )
 				->setDistrict( $district )->setPart( $part )->setStreet( $street );
 			$this->saveAll( $area );
 		}
@@ -191,7 +193,7 @@ class LocationFacade extends BaseFacade
 
 	/**
 	 * Searches / creates Address entity
-	 * 
+	 *
 	 * @param array $data
 	 * @return Address
 	 */
@@ -208,9 +210,9 @@ class LocationFacade extends BaseFacade
 			->andWhere( 'a.regNr = :reg_nr OR a.regNr IS NULL' )
 			->andWhere( 'a.houseNr = :house_nr OR a.houseNr IS NULL' )
 			->setParameters( [
-				'area'		 => $area,
-				'reg_nr'	 => $regNr,
-				'house_nr'	 => $houseNr,
+				'area'     => $area,
+				'reg_nr'   => $regNr,
+				'house_nr' => $houseNr,
 			] );
 
 		if ( !$address = $qb->getQuery()->getOneOrNullResult() ) {
@@ -220,6 +222,4 @@ class LocationFacade extends BaseFacade
 
 		return $address;
 	}
-
-
 }

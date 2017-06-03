@@ -2,6 +2,8 @@
 
 require __DIR__ . '/../../vendor/autoload.php';
 
+define( 'TEMP_DIR', __DIR__ . '/../temp' );
+
 //Nette\Application\Routers\Route::$defaultFlags = Nette\Application\Routers\Route::SECURED;
 
 $configurator = new Nette\Configurator;

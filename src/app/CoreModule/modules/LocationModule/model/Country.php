@@ -11,7 +11,7 @@ use Doctrine\ORM\Mapping as ORM;
  *
  * @ORM\Entity
  * @ORM\Table(name="lc_country", options={"collate"="utf8_czech_ci"})
- * 
+ *
  * @author Petr Blazicek 2016
  */
 class Country extends SimpleEntity
@@ -151,6 +151,4 @@ class Country extends SimpleEntity
 		$this->nameEngShort = $nameEngShort;
 		return $this;
 	}
-
-
 }

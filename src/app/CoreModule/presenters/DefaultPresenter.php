@@ -13,6 +13,6 @@ class DefaultPresenter extends BasePresenter
 
 	public function actionDefault()
 	{
-		$this->redirect( ':Client:Default:default' );
+		$this->redirect( ':Location:Default:default' );
 	}
 }
