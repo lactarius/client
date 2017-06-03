@@ -42,7 +42,7 @@ class Client extends CommonEntity implements IIdentity
 	private $password;
 
 	/**
-	 * @ORM\Column(length=255)
+	 * @ORM\Column(length=255, nullable=true)
 	 * @var string
 	 */
 	private $roles;

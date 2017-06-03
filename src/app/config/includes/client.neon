@@ -1,2 +1,7 @@
 extensions:
 	client: ClientModule\DI\ClientExtension
+
+
+services:
+	- Client\Model\ClientFacade
+	- Client\Components\Forms\IClientFormFactory

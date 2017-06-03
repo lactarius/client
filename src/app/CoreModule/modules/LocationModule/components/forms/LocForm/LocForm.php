@@ -158,5 +158,4 @@ class LocForm extends UI\Control
 		$template->render();
 	}
 
-
 }

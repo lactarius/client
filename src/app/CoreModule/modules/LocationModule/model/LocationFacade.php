@@ -4,7 +4,6 @@ namespace Location\Model;
 
 use Core\Model\BaseFacade;
 use Kdyby\Doctrine\EntityManager;
-use Kdyby\Doctrine\EntityRepository;
 
 
 /**
