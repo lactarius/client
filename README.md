@@ -12,7 +12,7 @@ chmod +x bin/*
 composer install
 ```
 
-#### Node.js & Bower packages:
+#### NPM & Bower packages:
 ```
 npm install --global yarn gulp
 yarn
