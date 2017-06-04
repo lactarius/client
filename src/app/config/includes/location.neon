@@ -4,4 +4,5 @@ extensions:
 
 services:
 	- Location\Components\Forms\ILocFormFactory
+	- Location\Components\Forms\ILocForm2Factory
 	- Location\Model\LocationFacade

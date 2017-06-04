@@ -2,8 +2,6 @@
 
 namespace ClientModule;
 
-use Client\Components\Forms\IClientFormFactory;
-
 /**
  * Class DefaultPresenter
  *
@@ -12,16 +10,4 @@ use Client\Components\Forms\IClientFormFactory;
 class DefaultPresenter extends BasePresenter
 {
 
-	/** @var  IClientFormFactory @inject */
-	public $clientFormFactory;
-
-
-	/**
-	 * @return \Client\Components\Forms\ClientForm
-	 */
-	protected function createComponentClientForm()
-	{
-		$control = $this->clientFormFactory->create();
-		return $control;
-	}
 }

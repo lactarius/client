@@ -2,6 +2,8 @@
 
 namespace LocationModule;
 
+use Location\Components\Forms\ILocForm2Factory;
+
 
 /**
  * Class DefaultPresenter
@@ -11,15 +13,25 @@ namespace LocationModule;
 class DefaultPresenter extends BasePresenter
 {
 
-	/** @var \Location\Components\Forms\ILocFormFactory @inject */
-	public $geoFormFactory;
+	/**
+	 * public $geoFormFactory;
+	 *
+	 *
+	 * protected function createComponentLocForm()
+	 * {
+	 * $control = $this->geoFormFactory->create();
+	 * $control->setShort( FALSE );
+	 * return $control;
+	 * }
+	 */
+
+	/** @var  ILocForm2Factory @inject */
+	public $locForm2Factory;
 
 
-	protected function createComponentLocForm()
+	protected function createComponentLocForm2()
 	{
-		$control = $this->geoFormFactory->create();
-		$control->setShort( FALSE );
+		$control = $this->locForm2Factory->create();
 		return $control;
 	}
-
 }

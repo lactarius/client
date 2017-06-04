@@ -5,335 +5,374 @@
  *
  * Petr Blazicek 2016
  */
-(function ( $ ) {
+(function ($) {
 
-	$.fn.addressor = function ( options ) {
+  $.fn.addressor = function (options) {
 
-		var opts = $.extend( {
-			form: {
-				saveId: 'lc_save'
-			},
-			map: {
-				mapId: 'lc_map',
-				zoom: 17,
-				chodska: { lat: 50.074805, lng: 14.445703 },
-				ust_bolchereckaya: { lat: 52.828079, lng: 156.281629 }
-			},
-			marker: {
-				crossIcon: {
-					url: 'https://pb-soft.cz/src/www/images/cross.png',
-					anchor: { xOffset: 24, yOffset: 24 }
-				}
-			},
-			geoFormAdapter: {
-				route: { name: 'street', short: false },
-				premise: { name: 'reg_nr', short: false },
-				street_number: { name: 'house_nr', short: false },
-				postal_code: { name: 'postal', short: false },
-				sublocality_level_1: { name: 'district', short: false },
-				neighborhood: { name: 'part', short: false },
-				locality: { name: 'city', short: false },
-				administrative_area_level_1: { name: 'region', short: false },
-				country: { name: 'country', short: true }
-			}
+    var opts = $.extend({
+      form: {
+        saveId: 'lc_save'
+      },
+      map: {
+        mapId: 'lc_map',
+        zoom: 17,
+        chodska: {lat: 50.074805, lng: 14.445703}
+      },
+      marker: {
+        crossIcon: {
+          url: 'https://pb-soft.cz/src/www/images/cross.png',
+          anchor: {xOffset: 24, yOffset: 24}
+        }
+      },
+      geoFormAdapter: {
+        route: {name: 'street', short: false},
+        premise: {name: 'reg_nr', short: false},
+        street_number: {name: 'house_nr', short: false},
+        postal_code: {name: 'postal', short: false},
+        sublocality_level_1: {name: 'district', short: false},
+        neighborhood: {name: 'part', short: false},
+        locality: {name: 'city', short: false},
+        administrative_area_level_1: {name: 'region', short: false},
+        country: {name: 'country', short: true}
+      }
 
-		}, options );
+    }, options);
 
-		var $el = $( this );
-		var $elD = $el[ 0 ];
-		var $mapD = document.getElementById( opts.map.mapId );
+    var $el = $(this);
+    var $elD = $el[0];
+    var $mapD = document.getElementById(opts.map.mapId);
+    var map;
+    var nQ1 = '', nQ2 = '';
+    var crossMarker, addressInfo, geocoder;
 
-		// initialize map
-		var map = new google.maps.Map( $mapD, {
-			zoom: opts.map.zoom,
-			center: opts.map.chodska
-		} );
-		map.panTo( map.getCenter() );
+    checkContainer();
+    initialize();
 
-		// initialize markers & info
-		var commonMarker = addMarker( map.getCenter() );
-		var crossMarker = addMarker( map.getCenter(), opts.marker.crossIcon );
-		var addressInfo = addInfo( crossMarker );
-		var geocoder = new google.maps.Geocoder();
+    /**
+     * Initialize all
+     */
+    function initialize () {
+      var field, lat, lng, pos, msg = '', info = '', mark = false, browserSupport = false;
 
-		// check current location & initialize listeners
-		initCurrentLocation( crossMarker, addressInfo );
-		initAddressListen( crossMarker, addressInfo );
-		initDragListen( crossMarker, addressInfo );
-		initFlashes();
+      // data in form?
+      field = 'input[name=\'' + nQ1 + 'lat' + nQ2 + '\']';
+      lat = $(field).val();
+      if (lat) {
 
-		/**
-		 * Sets new location
-		 * & centers map
-		 *
-		 * @param {LatLng} pos
-		 * @param {int} zoom
-		 */
-		function setMap( pos, zoom ) {
-			map.setCenter( pos );
-			map.panTo( pos );
-			map.setZoom( zoom ? zoom : opts.map.zoom );
-		}
+        field = 'input[name=\'' + nQ1 + 'lng' + nQ2 + '\']';
+        lng = $(field).val();
+        lat = parseFloat(lat);
+        lng = parseFloat(lng);
+        mark = true;
 
+        // current position allowed?
+      } else if (isSecure() && navigator.geolocation) {
+        browserSupport = true;
+        navigator.geolocation.getCurrentPosition(function (loc) {
 
-		/**
-		 * Adds new marker
-		 *
-		 * @param {LatLng} pos
-		 * @param {Object} icon
-		 * @param {boolean} draggable
-		 * @param {boolean} visible
-		 * @returns {google.maps.Marker}
-		 */
-		function addMarker( pos, icon, draggable, visible ) {
-			var marker = new google.maps.Marker( {
-				position: pos,
-				map: map,
-				draggable: draggable
-			} );
-			if ( icon ) {
-				image = {
-					url: icon.url,
-					anchor: new google.maps.Point( icon.anchor.xOffset, icon.anchor.yOffset )
-				};
-				marker.setIcon( image );
-			}
-			if ( !visible ) marker.setVisible( false );
+          lat = loc.coords.latitude;
+          lng = loc.coords.longitude;
+          msg = '<strong>Gotcha!</strong><br>';
+          mark = true;
 
-			return marker;
-		}
+        }, function () {
+          handleGeolocationError(browserSupport);
+        });
+        // default position
+      } else {
 
+        lat = opts.map.chodska.lat;
+        lng = opts.map.chodska.lng;
 
-		/**
-		 * Sets Marker position
-		 *
-		 * @param {google.maps.Marker} marker
-		 * @param {LatLng} pos
-		 * @param {boolean} draggable
-		 * @param {boolean} visible
-		 * @returns {google.maps.Marker}
-		 */
-		function setMarker( marker, pos, draggable, visible ) {
-			marker.setPosition( pos );
-			marker.setDraggable( draggable );
-			marker.setVisible( visible );
+      }
 
-			return marker;
-		}
+      pos = new google.maps.LatLng(lat, lng);
+      // draw map
+      map = new google.maps.Map($mapD, {
+        zoom: opts.map.zoom,
+        center: pos
+      });
+      map.panTo(map.getCenter());
 
+      // initialize marker etc.
+      crossMarker = addMarker(map.getCenter(), opts.marker.crossIcon);
+      addressInfo = addInfo(crossMarker);
+      geocoder = new google.maps.Geocoder();
 
-		/**
-		 * Adds new InfoWindow
-		 *
-		 * @param {google.maps.Marker} marker
-		 * @param {string} content
-		 * @param {boolean} open
-		 * @returns {google.maps.InfoWindow|info}
-		 */
-		function addInfo( marker, content, open ) {
-			info = new google.maps.InfoWindow( {
-				map: map,
-				marker: marker,
-				content: content
-			} );
-			if ( !open ) info.close();
+      // marker?
+      if (mark) {
+        geocoder.geocode({latLng: pos}, function (responses) {
+          if (responses && responses.length > 0) {
+            info = responses[0].formatted_address;
+          }
+        });
+        setMarker(crossMarker, pos, true, true);
+        if (info) {
+          setInfo(addressInfo, crossMarker, msg + info);
+          saveAddress(responses[0]);
+        }
 
-			return info;
-		}
+      }
 
+      initAddressListen(crossMarker, addressInfo);
+      initDragListen(crossMarker, addressInfo);
+      initFlashes();
+    }
 
-		/**
-		 * Sets info content & marker
-		 *
-		 * @param {google.maps.InfoWindow} info
-		 * @param {google.maps.Marker} marker
-		 * @param {string} content
-		 * @returns {google.maps.InfoWindow|info}
-		 */
-		function setInfo( info, marker, content ) {
-			info.setContent( content );
-			info.open( map, marker );
+    function isSecure () {
+      return location.protocol == 'https';
+    }
 
-			return info;
-		}
+    function checkContainer () {
+      var name, nameSplit;
+      name = $el.attr('name');
+      nameSplit = name.split('[');
+      if (nameSplit.length > 1) {
+        nQ1 = nameSplit[0] + '[';
+        nQ2 = ']';
+      }
+    }
 
+    /**
+     * Sets new location
+     * & centers map
+     *
+     * @param {LatLng} pos
+     * @param {int} zoom
+     */
+    function setMap (pos, zoom) {
+      map.setCenter(pos);
+      map.panTo(pos);
+      map.setZoom(zoom ? zoom : opts.map.zoom);
+    }
 
-		/**
-		 * Flash messages click listening initialization
-		 */
-		function initFlashes() {
-			$( '#snippet-locForm-flash' ).click( function () {
-				$( this ).html( '' );
-				$el.focus();
-			} );
-		}
+    /**
+     * Adds new marker
+     *
+     * @param {LatLng} pos
+     * @param {Object} icon
+     * @param {boolean} draggable
+     * @param {boolean} visible
+     * @returns {google.maps.Marker}
+     */
+    function addMarker (pos, icon, draggable, visible) {
+      var marker = new google.maps.Marker({
+        position: pos,
+        map: map,
+        draggable: draggable
+      });
+      if (icon) {
+        image = {
+          url: icon.url,
+          anchor: new google.maps.Point(icon.anchor.xOffset, icon.anchor.yOffset)
+        };
+        marker.setIcon(image);
+      }
+      if (!visible) marker.setVisible(false);
 
+      return marker;
+    }
 
-		/**
-		 * Tries to fetch current location
-		 *
-		 * @param {google.maps.Marker} marker
-		 * @param {google.maps.InfoWindow} info
-		 */
-		function initCurrentLocation( marker, info ) {
-			var browserSupport = false;
-			if ( navigator.geolocation ) {
-				browserSupport = true;
-				navigator.geolocation.getCurrentPosition( function ( loc ) {
+    /**
+     * Sets Marker position
+     *
+     * @param {google.maps.Marker} marker
+     * @param {LatLng} pos
+     * @param {boolean} draggable
+     * @param {boolean} visible
+     * @returns {google.maps.Marker}
+     */
+    function setMarker (marker, pos, draggable, visible) {
+      marker.setPosition(pos);
+      marker.setDraggable(draggable);
+      marker.setVisible(visible);
 
-					var pos =
-						new google.maps.LatLng( loc.coords.latitude, loc.coords.longitude );
-					setMap( pos, 17 );
-					setMarker( marker, pos, true, true );
+      return marker;
+    }
 
-					geocoder.geocode( { latLng: pos }, function ( responses ) {
-						if ( responses && responses.length > 0 ) {
-							setInfo( info, marker, "<strong>Gotcha!</strong><br>" + responses[ 0 ].formatted_address );
-							saveAddress( responses[ 0 ] );
-						} else {
-							alert( 'No geocode data.' );
-						}
-					} );
+    /**
+     * Adds new InfoWindow
+     *
+     * @param {google.maps.Marker} marker
+     * @param {string} content
+     * @param {boolean} open
+     * @returns {google.maps.InfoWindow|info}
+     */
+    function addInfo (marker, content, open) {
+      info = new google.maps.InfoWindow({
+        map: map,
+        marker: marker,
+        content: content
+      });
+      if (!open) info.close();
 
-				}, function () {
-					handleGeolocationError( browserSupport );
-				} );
-			} else {
-				handleGeolocationError( browserSupport );
-			}
-		}
+      return info;
+    }
 
+    /**
+     * Sets info content & marker
+     *
+     * @param {google.maps.InfoWindow} info
+     * @param {google.maps.Marker} marker
+     * @param {string} content
+     * @returns {google.maps.InfoWindow|info}
+     */
+    function setInfo (info, marker, content) {
+      info.setContent(content);
+      info.open(map, marker);
 
-		/**
-		 * CurrenLocation error handler
-		 *
-		 * @param {boolean} errorFlag
-		 */
-		function handleGeolocationError( errorFlag ) {
-			if ( errorFlag === true ) {
-				//alert( "Geolocation service failed." );
-			} else {
-				alert( "Your browser doesn't support geolocation." );
-				setMap( opts.map.ust_bolchereckaya );
-			}
-		}
+      return info;
+    }
 
+    /**
+     * Flash messages click listening initialization
+     */
+    function initFlashes () {
+      $('#snippet-locForm-flash').click(function () {
+        $(this).html('');
+        $el.focus();
+      });
+    }
 
-		/**
-		 * Address search with autocomplete listening initialization
-		 *
-		 * @param {google.maps.Marker} marker
-		 * @param {google.maps.InfoWindow} info
-		 */
-		function initAddressListen( marker, info ) {
-			// prevent submit
-			$el.keypress( function ( e ) {
-				if ( e.which == 13 ) return false;
-			} );
-			// autocomplete
-			var autocomplete = new google.maps.places.Autocomplete( $elD );
+    /**
+     * CurrenLocation error handler
+     *
+     * @param {boolean} errorFlag
+     */
+    function handleGeolocationError (errorFlag) {
+      if (errorFlag === true) {
+        //alert( "Geolocation service failed." );
+      } else {
+        alert('Your browser doesn\'t support geolocation.');
+        setMap(opts.map.ust_bolchereckaya);
+      }
+    }
 
-			autocomplete.bindTo( 'bounds', map );
-			autocomplete.addListener( 'place_changed', function () {
-				addressInfo.close();
+    /**
+     * Address search with autocomplete listening initialization
+     *
+     * @param {google.maps.Marker} marker
+     * @param {google.maps.InfoWindow} info
+     */
+    function initAddressListen (marker, info) {
+      // prevent submit
+      $el.keypress(function (e) {
+        if (e.which == 13) return false;
+      });
 
-				var place = autocomplete.getPlace();
-				if ( !place.geometry ) {
-					alert( 'This place contains no geometry.' );
-					return;
-				}
+      // autocomplete
+      var autocomplete = new google.maps.places.Autocomplete($elD);
 
-				if ( place.geometry.viewport ) {
-					map.fitBounds( place.geometry.viewport );
-				} else {
-					setMap( place.geometry.location );
-				}
-				setMarker( marker, place.geometry.location, true, true );
-				setInfo( info, marker, place.formatted_address );
-				// erase form on click
-				$el.click( function () {
-					eraseForm();
-				} );
+      autocomplete.bindTo('bounds', map);
+      autocomplete.addListener('place_changed', function () {
+        addressInfo.close();
 
-				if ( place.address_components ) {
-					console.log( place );
-					saveAddress( place );
-				}
-			} );
-		}
+        var place = autocomplete.getPlace();
+        if (!place.geometry) {
+          alert('This place contains no geometry.');
+          return;
+        }
 
+        if (place.geometry.viewport) {
+          map.fitBounds(place.geometry.viewport);
+        } else {
+          setMap(place.geometry.location);
+        }
+        setMarker(marker, place.geometry.location, true, true);
+        setInfo(info, marker, place.formatted_address);
+        // erase form on click
+        $el.click(function () {
+          eraseForm();
+        });
 
-		/**
-		 * Drag search marker listening initialization
-		 *
-		 * @param {google.maps.Marker} marker
-		 * @param {google.maps.InfoWindow} info
-		 */
-		function initDragListen( marker, info ) {
-			google.maps.event.addListener( marker, 'dragend', function ( event ) {
-				geocoder.geocode( { latLng: marker.getPosition() }, function ( responses ) {
-					if ( responses && responses.length > 0 ) {
-						setInfo( info, marker, responses[ 0 ].formatted_address );
-						saveAddress( responses[ 0 ] );
-					} else {
-						alert( 'No geocode data.' );
-					}
-				} );
-				map.panTo( marker.getPosition() );
-			} );
+        if (place.address_components) {
+          saveAddress(place);
+        }
+      });
+    }
 
-			google.maps.event.addListener( marker, 'dragstart', function () {
-				info.close();
-			} );
-		}
+    /**
+     * Drag search marker listening initialization
+     *
+     * @param {google.maps.Marker} marker
+     * @param {google.maps.InfoWindow} info
+     */
+    function initDragListen (marker, info) {
+      google.maps.event.addListener(marker, 'dragend', function (event) {
+        geocoder.geocode({latLng: marker.getPosition()}, function (responses) {
+          if (responses && responses.length > 0) {
+            setInfo(info, marker, responses[0].formatted_address);
+            saveAddress(responses[0]);
+          } else {
+            alert('No geocode data.');
+          }
+        });
+        map.panTo(marker.getPosition());
+      });
 
+      google.maps.event.addListener(marker, 'dragstart', function () {
+        info.close();
+      });
+    }
 
-		/**
-		 * Analyzes & converts result data
-		 *
-		 * @param {Object} result
-		 */
-		function saveAddress( result ) {
-			var trans = opts.geoFormAdapter;
-			var compo = result.address_components;
-			var geoKey, field, value;
+    /**
+     * Analyzes & converts result data
+     *
+     * @param {Object} result
+     */
+    function saveAddress (result) {
+      var trans = opts.geoFormAdapter;
+      var compo = result.address_components;
+      var geoKey, field, value;
 
-			eraseForm();
+      eraseForm();
 
-			$( "input[name='formatted']" ).val( result.formatted_address );
+      $('input[name=\'formatted\']').val(result.formatted_address);
 
-			if ( compo.length > 0 ) {
-				$.each( compo, function ( k, v ) {
+      if (compo.length > 0) {
+        $.each(compo, function (k, v) {
 
-					geoKey = v.types[ 0 ];
-					// set form element value
-					if ( trans[ geoKey ] ) {
-						field = "input[name='" + trans[ geoKey ].name + "']";
-						value = trans[ geoKey ].short ? v.short_name : v.long_name;
-						$( field ).val( value );
-					}
+          geoKey = v.types[0];
+          // set form element value
+          if (trans[geoKey]) {
+            field = 'input[name=\'' + nQ1 + trans[geoKey].name + nQ2 + '\']';
+            value = trans[geoKey].short ? v.short_name : v.long_name;
+            $(field).val(value);
+          }
 
-				} );
-			}
-		}
+        });
+        // lat / lng
+        field = 'input[name=\'' + nQ1 + 'lat' + nQ2 + '\']';
+        value = result.geometry.location.lat();
+        $(field).val(value);
+        field = 'input[name=\'' + nQ1 + 'lng' + nQ2 + '\']';
+        value = result.geometry.location.lng();
+        $(field).val(value);
 
+      }
+    }
 
-		/**
-		 * Erases address form
-		 */
-		function eraseForm() {
-			$el.val( '' );	// search field
-			$( "input[name='formatted']" ).val( '' );
+    /**
+     * Erases address form
+     */
+    function eraseForm () {
+      $el.val('');	// search field
+      $('input[name=\'formatted\']').val('');
 
-			$.each( opts.geoFormAdapter, function ( k, v ) {
-				$( "input[name='" + v.name + "']" ).val( '' );
-			} );
-		}
+      $.each(opts.geoFormAdapter, function (k, v) {
+        $('input[name=\'' + v.name + '\']').val('');
+      });
+    }
 
-	};
-})( jQuery );
+  };
+})(jQuery);
 
+/**
+ $(function () {
+  $('#lc_autocomplete').addressor();
+});
+ */
 
-$( function () {
-	$( '#lc_autocomplete' ).addressor();
-} );
+$(document).ready(function () {
+  $('#lc_autocomplete').addressor();
+});

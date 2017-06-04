@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
  *
  * @ORM\Entity
  * @ORM\Table(name="lc_address", options={"collate"="utf8_czech_ci"})
- * 
+ *
  * @author Petr Blazicek 2016
  */
 class Address extends \Core\Model\SimpleEntity
@@ -27,6 +27,18 @@ class Address extends \Core\Model\SimpleEntity
 	 * @var string
 	 */
 	private $houseNr;
+
+	/**
+	 * @ORM\Column(type="float", nullable=true)
+	 * @var float
+	 */
+	private $lat;
+
+	/**
+	 * @ORM\Column(type="float", nullable=true)
+	 * @var float
+	 */
+	private $lng;
 
 	/**
 	 * @ORM\ManyToOne(targetEntity="Area", cascade={"all"}, fetch="LAZY")
