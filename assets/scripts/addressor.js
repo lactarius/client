@@ -327,8 +327,6 @@
 
       eraseForm();
 
-      $('input[name=\'formatted\']').val(result.formatted_address);
-
       if (compo.length > 0) {
         $.each(compo, function (k, v) {
 
@@ -342,11 +340,8 @@
 
         });
         // lat / lng
-        field = 'input[name=\'' + nQ1 + 'lat' + nQ2 + '\']';
-        value = result.geometry.location.lat();
-        $(field).val(value);
-        field = 'input[name=\'' + nQ1 + 'lng' + nQ2 + '\']';
-        value = result.geometry.location.lng();
+        field = 'input[name=\'' + nQ1 + 'latlng' + nQ2 + '\']';
+        value = JSON.stringify({lat: result.geometry.location.lat(), lng: result.geometry.location.lng()});
         $(field).val(value);
 
       }

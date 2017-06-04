@@ -217,6 +217,7 @@ class LocationFacade extends BaseFacade
 
 		if ( !$address = $qb->getQuery()->getOneOrNullResult() ) {
 			$address = new Address( $area, $regNr, $houseNr );
+			$address->setLatlng( $data[ 'latlng' ] );
 			$this->saveAll( $address );
 		}
 

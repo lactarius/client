@@ -21,7 +21,7 @@ class CommonEntity extends UpdatedEntity
 {
 
 	/**
-	 * @ORM\Column(type="datetimetz")
+	 * @ORM\Column(type="datetimetz", nullable=true)
 	 * @var DateTime
 	 */
 	protected $deleted;

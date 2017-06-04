@@ -94,6 +94,15 @@ class BaseFacade extends \Nette\Object
 	}
 
 
+	/**
+	 * I have an explanation for this disgust...
+	 */
+	public function flush()
+	{
+		$this->em->flush();
+	}
+
+
 	// getters & setters
 
 	public function getEm()

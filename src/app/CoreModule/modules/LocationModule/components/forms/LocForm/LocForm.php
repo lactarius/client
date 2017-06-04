@@ -23,11 +23,11 @@ class LocForm extends UI\Control
 	private $short;
 
 
-	public function __construct( \Location\Model\LocationFacade $facade,
+	public function __construct( \Location\Model\LocationFacade $clientFacade,
 							  IContainer $parent = NULL, $name = NULL )
 	{
 		parent::__construct( $parent, $name );
-		$this->facade = $facade;
+		$this->facade = $clientFacade;
 	}
 
 

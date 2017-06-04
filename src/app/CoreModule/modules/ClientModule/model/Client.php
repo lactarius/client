@@ -36,7 +36,7 @@ class Client extends CommonEntity implements IIdentity
 	private $email;
 
 	/**
-	 * @ORM\Column(length=60, options={"fixed"=true})
+	 * @ORM\Column(length=60, options={"fixed"=true}, nullable=true)
 	 * @var string
 	 */
 	private $password;
@@ -48,7 +48,7 @@ class Client extends CommonEntity implements IIdentity
 	private $roles;
 
 	/**
-	 * @ORM\OneToOne(targetEntity="Location\Model\Address")
+	 * @ORM\ManyToOne(targetEntity="Location\Model\Address")
 	 * @var Address
 	 */
 	private $address;
@@ -122,6 +122,17 @@ class Client extends CommonEntity implements IIdentity
 	{
 		$this->surname = $surname;
 		return $this;
+	}
+
+
+	/**
+	 * Return Client full name
+	 *
+	 * @return string
+	 */
+	public function getFullname()
+	{
+		return $this->getName() . ' ' . $this->getSurname();
 	}
 
 

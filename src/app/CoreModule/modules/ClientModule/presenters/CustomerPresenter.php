@@ -3,6 +3,7 @@
 namespace ClientModule;
 
 use Client\Components\Forms\IClientFormFactory;
+use Client\Model\Client;
 
 /**
  * @author Petr Blazicek 2017
@@ -22,6 +23,11 @@ class CustomerPresenter extends BasePresenter
 	protected function createComponentClientForm()
 	{
 		$control = $this->clientFormFactory->create();
+		$control->onSave[] = function ( Client $client ) {
+			$this->flashMessage( 'Client ' . $client->getFullname() . ' was successfully saved.' );
+			$this->redirect( 'Default:' );
+		};
+
 		return $control;
 	}
 

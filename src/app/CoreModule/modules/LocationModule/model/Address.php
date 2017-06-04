@@ -29,16 +29,10 @@ class Address extends \Core\Model\SimpleEntity
 	private $houseNr;
 
 	/**
-	 * @ORM\Column(type="float", nullable=true)
-	 * @var float
+	 * @ORM\Column(length=64, nullable=true)
+	 * @var string
 	 */
-	private $lat;
-
-	/**
-	 * @ORM\Column(type="float", nullable=true)
-	 * @var float
-	 */
-	private $lng;
+	private $latlng;
 
 	/**
 	 * @ORM\ManyToOne(targetEntity="Area", cascade={"all"}, fetch="LAZY")
@@ -94,4 +88,22 @@ class Address extends \Core\Model\SimpleEntity
 	}
 
 
+	/**
+	 * @return string
+	 */
+	public function getLatlng()
+	{
+		return $this->latlng;
+	}
+
+
+	/**
+	 * @param string $latlng
+	 * @return self (fluent interface)
+	 */
+	public function setLatlng( $latlng )
+	{
+		$this->latlng = $latlng;
+		return $this;
+	}
 }

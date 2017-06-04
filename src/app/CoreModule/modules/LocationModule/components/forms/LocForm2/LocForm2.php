@@ -20,14 +20,14 @@ class LocForm2 extends Control
 
 	/**
 	 * LocForm2 constructor.
-	 * @param LocationFacade $facade
+	 * @param LocationFacade $clientFacade
 	 * @param IContainer|NULL $parent
 	 * @param null $name
 	 */
-	public function __construct( LocationFacade $facade, IContainer $parent = NULL, $name = NULL )
+	public function __construct( LocationFacade $clientFacade, IContainer $parent = NULL, $name = NULL )
 	{
 		parent::__construct( $parent, $name );
-		$this->facade = $facade;
+		$this->facade = $clientFacade;
 	}
 
 

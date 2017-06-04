@@ -24,12 +24,6 @@ class LocContainer extends Container
 	{
 		parent::__construct( $parent, $name );
 
-		$this->addHidden( 'formatted' );
-
-		$this->addHidden('lat');
-
-		$this->addHidden('lng');
-
 		$this->addText( 'place', 'Searched place:' )
 			->setAttribute( 'id', self::AUTOCOMPLETE_ID );
 
@@ -50,5 +44,7 @@ class LocContainer extends Container
 		$this->addText( 'region', 'Region:' );
 
 		$this->addText( 'country', 'Country:' );
+
+		$this->addText( 'latlng', 'LatLng' );
 	}
 }

@@ -24,13 +24,13 @@ class Profile extends SimpleEntity
 	private $sex;
 
 	/**
-	 * @ORM\Column(length=32)
+	 * @ORM\Column(length=32, nullable=true)
 	 * @var string
 	 */
 	private $phone;
 
 	/**
-	 * @ORM\Column(length=255)
+	 * @ORM\Column(length=255, nullable=true)
 	 * @var string
 	 */
 	private $photo;
