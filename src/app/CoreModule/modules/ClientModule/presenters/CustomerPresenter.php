@@ -4,6 +4,7 @@ namespace ClientModule;
 
 use Client\Components\Forms\IClientFormFactory;
 use Client\Components\Grids\ICardGridFactory;
+use Client\Components\Grids\IClientGridFactory;
 use Client\Model\Client;
 
 /**
@@ -12,6 +13,9 @@ use Client\Model\Client;
 class CustomerPresenter extends BasePresenter
 {
 
+	/** @var  IClientGridFactory @inject */
+	public $clientGridFactory;
+
 	/** @var  IClientFormFactory @inject */
 	public $clientFormFactory;
 
@@ -19,6 +23,15 @@ class CustomerPresenter extends BasePresenter
 	public $cardGridFactory;
 
 	// factories
+
+
+	/**
+	 * @return \Client\Components\Grids\ClientGrid
+	 */
+	protected function createComponentClientGrid()
+	{
+		return $this->clientGridFactory->create();
+	}
 
 
 	/**
@@ -54,15 +67,17 @@ class CustomerPresenter extends BasePresenter
 
 	public function renderDefault()
 	{
+		$this->template->title = 'Clients';
+		$this->template->width = 6;
 	}
 
 
-	public function actionClient( $id = NULL )
+	public function actionEdit( $id = NULL )
 	{
 	}
 
 
-	public function renderClient( $id = NULL )
+	public function renderEdit( $id = NULL )
 	{
 	}
 

@@ -12,6 +12,7 @@ use TwiGrid\DataGrid;
 class CardGrid extends DataGrid
 {
 
+	/** @var ClientFacade  */
 	private $facade;
 
 
