@@ -41,7 +41,7 @@ class ClientGrid extends DataGrid
 
 	public function dataLoader( ClientGrid $grid, array $filters, array $order )
 	{
-		$qb = $this->facade->getEm()->createQueryBuilder('c');
+		$qb = $this->facade->getRepo()->createQueryBuilder('c');
 
 		// order
 		foreach ( $order as $column => $dir ) {
