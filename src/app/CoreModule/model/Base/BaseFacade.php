@@ -109,6 +109,4 @@ class BaseFacade extends \Nette\Object
 	{
 		return $this->em;
 	}
-
-
 }

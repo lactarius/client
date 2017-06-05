@@ -2,6 +2,7 @@
 
 namespace Client\Components\Forms;
 
+use Client\Model\Card;
 use Client\Model\ClientFacade;
 use Core\Components\Forms\BSUIForm;
 use Location\Components\Forms\LocContainer;
@@ -78,6 +79,9 @@ class ClientForm extends Control
 
 		$form[ 'profile' ] = new ProfileContainer();
 
+		$form->addSelect( 'card', 'Card', Card::TYPE )
+			->setPrompt( 'Select card type' );
+
 		$form->addSubmit( 'save', 'Save' );
 		$form->onSuccess[] = $this->process;
 
@@ -95,11 +99,14 @@ class ClientForm extends Control
 
 		$address = $this->locationFacade->getAddress( $data[ 'address' ] );
 		$profile = $this->clientFacade->saveProfile( $data[ 'profile' ] );
+		$card = $this->clientFacade->generateCard( $data[ 'card' ] );
 		$client = $this->clientFacade->saveClient( $data );
 
 		if ( $client ) {
+
 			if ( $address ) $client->setAddress( $address );
 			if ( $profile ) $client->setProfile( $profile );
+			if ( $card ) $client->addCard( $card );
 
 			$this->clientFacade->flush();
 

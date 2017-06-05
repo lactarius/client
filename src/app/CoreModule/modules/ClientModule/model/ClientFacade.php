@@ -4,6 +4,8 @@ namespace Client\Model;
 
 use Core\Model\BaseFacade;
 use Kdyby\Doctrine\EntityManager;
+use Nette\DateTime;
+use Nette\Utils\Strings;
 
 /**
  * @author Petr Blazicek 2017
@@ -23,6 +25,15 @@ class ClientFacade extends BaseFacade
 	{
 		parent::__construct( $em );
 		$this->repo = $em->getRepository( Client::class );
+	}
+
+
+	/**
+	 * @return \Kdyby\Doctrine\EntityRepository
+	 */
+	public function getRepo()
+	{
+		return $this->repo;
 	}
 
 
@@ -53,5 +64,44 @@ class ClientFacade extends BaseFacade
 		$this->saveAll( $profile );
 
 		return $profile;
+	}
+
+	// tools
+
+
+	/**
+	 * Generate new card of certain type
+	 *
+	 * @param $type
+	 * @return Card
+	 */
+	public function generateCard( $type )
+	{
+		if ( !$type ) return NULL;
+
+		$cardRepo = $this->repo->related( 'cards' );
+
+		$now = new DateTime();
+		$date = $now->format( 'Ymd' );
+
+		$latestCard = $cardRepo->findOneBy( [], [ 'id' => 'DESC' ] );
+		if ( $latestCard ) {
+			$latestNumber = $latestCard->getNumber();
+			$latestDate = Strings::substring( $latestNumber, 0, 8 );
+			$latestCount = Strings::substring( $latestNumber, 8, 8 );
+		}
+		if ( !$latestCard || $date > $latestDate ) {
+			$count = 1;
+		} else {
+			$count = $latestCount + 1;
+		}
+
+		$number = sprintf( '%s%08u', $date, $count );
+
+		$card = new Card();
+		$card->setNumber( $number )->setType( $type );
+		$this->saveAll( $card );
+
+		return $card;
 	}
 }

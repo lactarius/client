@@ -5,3 +5,4 @@ extensions:
 services:
 	- Client\Model\ClientFacade
 	- Client\Components\Forms\IClientFormFactory
+	- Client\Components\Grids\ICardGridFactory

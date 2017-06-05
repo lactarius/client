@@ -17,6 +17,11 @@ class Card extends CommonEntity
 	const TYPE_TEMP = 1;
 	const TYPE_BASE = 2;
 	const TYPE_PREMIUM = 3;
+	const TYPE = [
+		self::TYPE_TEMP    => 'Temporary card',
+		self::TYPE_BASE    => 'Base loyalty card',
+		self::TYPE_PREMIUM => 'Premium loyalty card',
+	];
 
 	/**
 	 * @ORM\Column(length=16)
