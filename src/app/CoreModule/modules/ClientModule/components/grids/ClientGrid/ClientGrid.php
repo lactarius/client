@@ -3,51 +3,82 @@
 namespace Client\Components\Grids;
 
 use Client\Model\ClientFacade;
-use Nette;
-use TwiGrid\DataGrid;
+use Nette\Application\UI\Control;
+use Nette\ComponentModel\IContainer;
+use Nette\Forms\Container;
+use Nextras\Datagrid\Datagrid;
 
 /**
  * @author Petr Blazicek 2017
  */
-class ClientGrid extends DataGrid
+class ClientGrid extends Control
 {
 
 	/** @var ClientFacade */
 	private $facade;
 
 
-	public function __construct( ClientFacade $facade, Nette\Http\Session $s )
+	public function __construct( ClientFacade $facade, IContainer $parent = NULL, $name = NULL )
 	{
-		parent::__construct( $s );
+		parent::__construct( $parent, $name );
 		$this->facade = $facade;
 	}
 
 
-	protected function build()
+	protected function createComponentGrid()
 	{
-		parent::build();
+		$grid = new Datagrid();
 
-		$this->setTemplateFile( __DIR__ . '/ClientGrid.latte' );
+		$grid->addCellsTemplate( __DIR__ . '/cells.latte' );
 
-		$this->addColumn( 'name', 'Name' )->setSortable();
-		$this->addColumn( 'surname', 'Surname' )->setSortable();
-		$this->addColumn( 'email', 'E-mail' );
+		$grid->addColumn( 'id' );
+		$grid->addColumn( 'name', 'Name' );
+		$grid->addColumn( 'surname', 'Surname' )->enableSort( Datagrid::ORDER_ASC );
+		$grid->addColumn( 'email', 'E-mail' );
 
-		$this->setPrimaryKey( 'id' );
+		$grid->setFilterFormFactory( $this->filterFormFactory );
 
-		$this->setDataLoader( $this->dataLoader );
+		$grid->setDataSourceCallback( $this->dataSource );
+
+		return $grid;
 	}
 
 
-	public function dataLoader( ClientGrid $grid, array $filters, array $order )
+	public function filterFormFactory()
 	{
-		$qb = $this->facade->getRepo()->createQueryBuilder('c');
+		$form = new Container();
 
-		// order
-		foreach ( $order as $column => $dir ) {
-			$qb->orderBy( "c.$column", $dir > 0 ? 'DESC' : 'ASC' );
+		$form->addText( 'name' );
+		$form->addText( 'surname' );
+
+		return $form;
+	}
+
+
+	public function dataSource( $filter, $order )
+	{
+		$qb = $this->facade->getRepo()->createQueryBuilder( 'c' );
+
+		foreach ( $filter as $column => $value ) {
+			$qb->andWhere( "c.$column LIKE :$column" )
+				->setParameter( "$column", "$value%" );
+		}
+
+		if ( $order ) {
+			$col = $order[ 0 ];
+			$dir = $order[ 1 ];
+			$qb->addOrderBy( "c.$col", $dir );
 		}
 
 		return $qb->getQuery()->getResult();
+	}
+
+
+	public function render()
+	{
+		$template = $this->template;
+		$template->setFile( __DIR__ . '/clientGrid.latte' );
+
+		$template->render();
 	}
 }

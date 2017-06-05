@@ -1,2 +1,7 @@
 extensions:
 	core: CoreModule\DI\CoreExtension
+
+
+latte:
+	macros:
+		- Nextras\Latte\Macros\RedefineMacro

@@ -22,7 +22,7 @@
 		"flame/modules": "dev-master",
 		"tomaj/nette-bootstrap-form": "^1.2",
 		"majkl578/nette-identity-doctrine": "^2.2",
-		"uestla/twigrid": "*"
+		"nextras/datagrid": "^2.1"
 	},
 	"require-dev": {
 		"nette/tester": "@dev"

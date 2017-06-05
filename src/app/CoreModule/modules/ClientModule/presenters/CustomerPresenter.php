@@ -3,7 +3,6 @@
 namespace ClientModule;
 
 use Client\Components\Forms\IClientFormFactory;
-use Client\Components\Grids\ICardGridFactory;
 use Client\Components\Grids\IClientGridFactory;
 use Client\Model\Client;
 
@@ -18,9 +17,6 @@ class CustomerPresenter extends BasePresenter
 
 	/** @var  IClientFormFactory @inject */
 	public $clientFormFactory;
-
-	/** @var  ICardGridFactory @inject */
-	public $cardGridFactory;
 
 	// factories
 
@@ -46,15 +42,6 @@ class CustomerPresenter extends BasePresenter
 		};
 
 		return $control;
-	}
-
-
-	/**
-	 * @return \Client\Components\Grids\CardGrid
-	 */
-	protected function createComponentCardGrid()
-	{
-		return $this->cardGridFactory->create();
 	}
 
 
