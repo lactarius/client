@@ -13,10 +13,6 @@ use Nette\Utils\Strings;
 class ClientFacade extends BaseFacade
 {
 
-	/** @var \Kdyby\Doctrine\EntityRepository */
-	private $repo;
-
-
 	/**
 	 * ClientFacade constructor.
 	 * @param EntityManager $em
@@ -25,15 +21,6 @@ class ClientFacade extends BaseFacade
 	{
 		parent::__construct( $em );
 		$this->repo = $em->getRepository( Client::class );
-	}
-
-
-	/**
-	 * @return \Kdyby\Doctrine\EntityRepository
-	 */
-	public function getRepo()
-	{
-		return $this->repo;
 	}
 
 

@@ -47,18 +47,6 @@ class CustomerPresenter extends BasePresenter
 
 	// actions
 
-	public function actionDefault()
-	{
-	}
-
-
-	public function renderDefault()
-	{
-		$this->template->title = 'Clients';
-		$this->template->width = 6;
-	}
-
-
 	public function actionEdit( $id = NULL )
 	{
 	}

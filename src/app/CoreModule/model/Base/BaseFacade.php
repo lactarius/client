@@ -3,6 +3,7 @@
 namespace Core\Model;
 
 use Kdyby\Doctrine\EntityManager;
+use Kdyby\Doctrine\EntityRepository;
 
 
 /**
@@ -33,10 +34,19 @@ class BaseFacade extends \Nette\Object
 	/** @var EntityManager */
 	protected $em;
 
+	/** @var  EntityRepository */
+	protected $repo;
+
 
 	public function __construct( EntityManager $em )
 	{
 		$this->em = $em;
+	}
+
+
+	public function getRepo()
+	{
+		return $this->repo;
 	}
 
 

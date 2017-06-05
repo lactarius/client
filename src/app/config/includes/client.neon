@@ -4,5 +4,7 @@ extensions:
 
 services:
 	- Client\Model\ClientFacade
+	- Client\Model\ShopFacade
 	- Client\Components\Grids\IClientGridFactory
 	- Client\Components\Forms\IClientFormFactory
+	- Client\Components\Forms\IShopFormFactory

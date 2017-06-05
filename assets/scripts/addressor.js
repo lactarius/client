@@ -362,12 +362,6 @@
   };
 })(jQuery);
 
-/**
- $(function () {
-  $('#lc_autocomplete').addressor();
-});
- */
-
-$(document).ready(function () {
+$(function () {
   $('#lc_autocomplete').addressor();
 });

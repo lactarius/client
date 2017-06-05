@@ -28,13 +28,12 @@ class ClientGrid extends Control
 	protected function createComponentGrid()
 	{
 		$grid = new Datagrid();
-
-		$grid->addCellsTemplate( __DIR__ . '/cells.latte' );
-
-		$grid->addColumn( 'id' );
-		$grid->addColumn( 'name', 'Name' );
+		$grid->addColumn( 'name', 'Name' )->enableSort();
 		$grid->addColumn( 'surname', 'Surname' )->enableSort( Datagrid::ORDER_ASC );
 		$grid->addColumn( 'email', 'E-mail' );
+
+		$grid->addCellsTemplate( __DIR__ . '/../bs3.latte' );
+		$grid->addCellsTemplate( __DIR__ . '/def.latte' );
 
 		$grid->setFilterFormFactory( $this->filterFormFactory );
 
@@ -67,7 +66,7 @@ class ClientGrid extends Control
 		if ( $order ) {
 			$col = $order[ 0 ];
 			$dir = $order[ 1 ];
-			$qb->addOrderBy( "c.$col", $dir );
+			$qb->orderBy( "c.$col", $dir );
 		}
 
 		return $qb->getQuery()->getResult();
@@ -77,7 +76,9 @@ class ClientGrid extends Control
 	public function render()
 	{
 		$template = $this->template;
-		$template->setFile( __DIR__ . '/clientGrid.latte' );
+		$template->setFile( __DIR__ . '/../commonGrid.latte' );
+		$template->width = 6;
+		$template->title = 'Client';
 
 		$template->render();
 	}

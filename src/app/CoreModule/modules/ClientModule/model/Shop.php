@@ -2,6 +2,7 @@
 
 namespace Client\Model;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Core\Model\SimpleEntity;
 use Location\Model\Address;
@@ -22,13 +23,13 @@ class Shop extends SimpleEntity
 	private $name;
 
 	/**
-	 * @ORM\Column(length=255)
+	 * @ORM\Column(length=255, nullable=true)
 	 * @var string
 	 */
 	private $url;
 
 	/**
-	 * @ORM\Column(type="text")
+	 * @ORM\Column(type="text", nullable=true)
 	 * @var string
 	 */
 	private $info;
@@ -38,6 +39,22 @@ class Shop extends SimpleEntity
 	 * @var Address
 	 */
 	private $address;
+
+	/**
+	 * @ORM\ManyToMany(targetEntity="Commodity")
+	 * @ORM\JoinTable(name="cl_shops_commodities",
+	 *     joinColumns={@ORM\JoinColumn(name="shop_id", referencedColumnName="id")},
+	 *     inverseJoinColumns={@ORM\JoinColumn(name="commodity_id", referencedColumnName="id")}
+	 *     )
+	 * @var Commodity|ArrayCollection
+	 */
+	private $commodities;
+
+
+	public function __construct()
+	{
+		$this->commodities = new ArrayCollection();
+	}
 
 	// getters & setters
 
@@ -118,6 +135,39 @@ class Shop extends SimpleEntity
 	public function setAddress( $address )
 	{
 		$this->address = $address;
+		return $this;
+	}
+
+
+	/**
+	 * @return Commodity|ArrayCollection
+	 */
+	public function getCommodities()
+	{
+		return $this->commodities;
+	}
+
+
+	/**
+	 * @param Commodity $commodity
+	 * @return self (fluent interface)
+	 */
+	public function addCommodity( $commodity )
+	{
+		if ( !$this->commodities->contains( $commodity ) ) {
+			$this->commodities->add( $commodity );
+		}
+		return $this;
+	}
+
+
+	/**
+	 * @param Commodity $commodity
+	 * @return self (fluent interface)
+	 */
+	public function removeCommodity( $commodity )
+	{
+		$this->commodities->removeElement( $commodity );
 		return $this;
 	}
 }
