@@ -60,9 +60,18 @@ class ShopForm extends BaseControlForm
 
 	public function process( Form $form )
 	{
-		$data = $form->getValues();
+		$data = $form->getValues( TRUE );
 
-		print_r($data);die;
+		$shop = $this->facade->saveShop( $data );
+
+		if ( $shop ) {
+			$address = $this->locationFacade->getAddress( $data[ 'address' ] );
+			if ( $address ) $shop->setAddress( $address );
+
+			$this->facade->flush();
+
+			$this->onSave( $shop );
+		}
 	}
 
 

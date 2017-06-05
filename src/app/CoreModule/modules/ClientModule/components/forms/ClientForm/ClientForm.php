@@ -97,13 +97,13 @@ class ClientForm extends Control
 
 		$data = $form->getValues( TRUE );
 
-		$address = $this->locationFacade->getAddress( $data[ 'address' ] );
-		$profile = $this->clientFacade->saveProfile( $data[ 'profile' ] );
-		$card = $this->clientFacade->generateCard( $data[ 'card' ] );
 		$client = $this->clientFacade->saveClient( $data );
 
 		if ( $client ) {
 
+			$address = $this->locationFacade->getAddress( $data[ 'address' ] );
+			$profile = $this->clientFacade->saveProfile( $data[ 'profile' ] );
+			$card = $this->clientFacade->generateCard( $data[ 'card' ] );
 			if ( $address ) $client->setAddress( $address );
 			if ( $profile ) $client->setProfile( $profile );
 			if ( $card ) $client->addCard( $card );
