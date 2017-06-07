@@ -16,15 +16,4 @@ class PurchaseFacade extends BaseFacade
 		parent::__construct( $em );
 		$this->repo=$em->getRepository(Purchase::class);
 	}
-
-
-	public function top10(){
-		$itemRepo=$this->repo->related('items');
-
-		$clients=$this->repo->
-
-		$qb=$itemRepo->createQueryBuilder('i');
-
-		$qb->select('SUM(i.unitPrice')
-	}
 }
