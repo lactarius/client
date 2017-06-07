@@ -8,3 +8,4 @@ services:
 	- Client\Components\Grids\IClientGridFactory
 	- Client\Components\Forms\IClientFormFactory
 	- Client\Components\Forms\IShopFormFactory
+	- Client\Components\Grids\ICommodityGrid

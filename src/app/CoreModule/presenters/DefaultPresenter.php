@@ -13,6 +13,6 @@ class DefaultPresenter extends BasePresenter
 
 	public function actionDefault()
 	{
-		$this->redirect( ':Client:Shop:edit' );
+		$this->redirect( ':Client:Shop:commodity' );
 	}
 }

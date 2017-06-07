@@ -362,6 +362,12 @@
   };
 })(jQuery);
 
+/**
 $(function () {
+  $('#lc_autocomplete').addressor();
+});
+*/
+
+$(document).ready(function () {
   $('#lc_autocomplete').addressor();
 });

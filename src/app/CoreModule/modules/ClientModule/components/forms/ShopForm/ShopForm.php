@@ -35,6 +35,9 @@ class ShopForm extends BaseControlForm
 	}
 
 
+	/**
+	 * @return BSUIForm
+	 */
 	protected function createComponentForm()
 	{
 		$form = new BSUIForm();
@@ -54,10 +57,16 @@ class ShopForm extends BaseControlForm
 		$form->addSubmit( 'save', 'Save' );
 		$form->onSuccess[] = $this->process;
 
+		// clear or ugly?
+		if ( $this->id ) $form->setDefaults( $this->facade->restoreShop( $this->id ) );
+
 		return $form;
 	}
 
 
+	/**
+	 * @param Form $form
+	 */
 	public function process( Form $form )
 	{
 		$data = $form->getValues( TRUE );

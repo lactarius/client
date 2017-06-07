@@ -11,6 +11,10 @@ use Kdyby\Doctrine\EntityManager;
 class ShopFacade extends BaseFacade
 {
 
+	/** @var \Kdyby\Doctrine\EntityRepository */
+	private $commodityRepo;
+
+
 	/**
 	 * ShopFacade constructor.
 	 * @param EntityManager $em
@@ -19,6 +23,16 @@ class ShopFacade extends BaseFacade
 	{
 		parent::__construct( $em );
 		$this->repo = $em->getRepository( Shop::class );
+		$this->commodityRepo = $em->getRepository( Commodity::class );
+	}
+
+
+	/**
+	 * @return \Kdyby\Doctrine\EntityRepository
+	 */
+	public function getCommodityRepo()
+	{
+		return $this->commodityRepo;
 	}
 
 
@@ -49,6 +63,16 @@ class ShopFacade extends BaseFacade
 		// parameter can be Entity or ID
 		$shop = $mixed instanceof Shop ? $mixed : $this->repo->find( $mixed );
 
-		return ShopService::restoreShop($shop);
+		return $shop ? ShopService::restoreShop( $shop ) : NULL;
+	}
+
+
+	public function saveCommodity( $data )
+	{
+		$commodity = $this->prepareEntity( Commodity::class, $data );
+		$commodity = ShopService::saveCommodity( $commodity, $data );
+		$this->saveAll( $commodity );
+
+		return $commodity;
 	}
 }

@@ -36,4 +36,19 @@ class ShopService
 			'info' => $shop->getInfo(),
 		];
 	}
+
+
+	/**
+	 * @param Commodity $commodity
+	 * @param $data
+	 * @return Commodity
+	 */
+	public static function saveCommodity( Commodity $commodity, $data )
+	{
+		if ( !empty( $data[ 'name' ] ) ) $commodity->setName( $data[ 'name' ] );
+		if ( isset( $data[ 'info' ] ) ) $commodity->setInfo( $data[ 'info' ] );
+		if ( isset( $data[ 'parent' ] ) ) $commodity->setParent( $data[ 'parent' ] );
+
+		return $commodity;
+	}
 }

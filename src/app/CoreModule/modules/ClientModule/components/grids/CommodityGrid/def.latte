@@ -1,0 +1,17 @@
+{define col-name}
+	<td>
+		{$row->name}
+	</td>
+{/define}
+
+{define col-info}
+	<td>
+		{$row->info}
+	</td>
+{/define}
+
+{define col-parent}
+	<td>
+		{$row->parent ? $row->parent->name : '--'}
+	</td>
+{/define}

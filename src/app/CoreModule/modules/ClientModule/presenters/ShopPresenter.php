@@ -3,6 +3,7 @@
 namespace ClientModule;
 
 use Client\Components\Forms\IShopFormFactory;
+use Client\Components\Grids\ICommodityGrid;
 use Client\Model\Shop;
 
 /**
@@ -14,6 +15,8 @@ class ShopPresenter extends BasePresenter
 	/** @var  IShopFormFactory @inject */
 	public $shopFormFactory;
 
+	/** @var  ICommodityGrid @inject */
+	public $commodityGridFactory;
 
 	// factories
 
@@ -32,5 +35,25 @@ class ShopPresenter extends BasePresenter
 		return $control;
 	}
 
+
+	/**
+	 * @return \Client\Components\Grids\CommodityGrid
+	 */
+	protected function createComponentCommodityGrid()
+	{
+		return $this->commodityGridFactory->create();
+	}
+
+
 	// actions
+
+	public function actionEdit( $id = NULL )
+	{
+		$this[ 'shopForm' ]->setId( $id );
+	}
+
+
+	public function renderCommodity()
+	{
+	}
 }

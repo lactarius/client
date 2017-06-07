@@ -142,4 +142,20 @@ class Commodity extends SimpleEntity
 		$this->parent = $parent;
 		return $this;
 	}
+
+
+	// tools
+
+
+	/**
+	 * @return array
+	 */
+	public function restoreData()
+	{
+		return [
+			'id'   => $this->getId(),
+			'name' => $this->getName(),
+			'info' => $this->getInfo(),
+		];
+	}
 }
