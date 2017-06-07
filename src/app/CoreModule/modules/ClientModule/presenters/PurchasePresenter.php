@@ -13,7 +13,6 @@ class PurchasePresenter extends BasePresenter
 	/** @var  IPurchaseGridFactory @inject */
 	public $purchaseGridFactory;
 
-
 	// factories
 
 	protected function createComponentPurchaseGrid()

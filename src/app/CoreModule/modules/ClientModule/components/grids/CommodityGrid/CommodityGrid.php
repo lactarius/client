@@ -38,8 +38,8 @@ class CommodityGrid extends Control
 
 		$grid->setRowPrimaryKey( 'id' );
 
-		$grid->addCellsTemplate( __DIR__ . '/../bs3.latte' );
-		$grid->addCellsTemplate( __DIR__ . '/def.latte' );
+		//$grid->addCellsTemplate( __DIR__ . '/../bs3.latte' );
+		//$grid->addCellsTemplate( __DIR__ . '/def.latte' );
 
 		$grid->setNewRecordCallback( $this->newRecord );
 

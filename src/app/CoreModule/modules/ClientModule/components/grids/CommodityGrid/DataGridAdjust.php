@@ -29,4 +29,10 @@ class DataGridAdjust extends Datagrid
 		$this->flashMessage( 'New record added. Edit it!' );
 		$this->invalidateControl( 'rows' );
 	}
+
+
+	public function handleGridForm()
+	{
+		echo 'xx';
+	}
 }
