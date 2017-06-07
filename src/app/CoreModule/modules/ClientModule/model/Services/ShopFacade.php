@@ -75,4 +75,19 @@ class ShopFacade extends BaseFacade
 
 		return $commodity;
 	}
+
+
+	public function newCommodity()
+	{
+		if ( $this->commodityRepo->findOneBy( [ 'name' => 'XXXXX' ] ) ) return NULL;
+		$parents = $this->commodityRepo->findPairs( [], 'name', [ 'id' => 'ASC', 'name' => 'ASC' ] );
+
+		$commodity = new Commodity();
+		$commodity->setName( 'XXXXX' );
+		$commodity->setInfo( 'YYYYY' );
+
+		$this->saveAll( $commodity, TRUE );
+
+		return $commodity;
+	}
 }

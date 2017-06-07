@@ -31,7 +31,7 @@ class CommodityGrid extends Control
 	 */
 	protected function createComponentGrid()
 	{
-		$grid = new Datagrid();
+		$grid = new DataGridAdjust();
 		$grid->addColumn( 'name', 'Name' );
 		$grid->addColumn( 'info', 'Info' );
 		$grid->addColumn( 'parent', 'Parent' );
@@ -40,6 +40,8 @@ class CommodityGrid extends Control
 
 		$grid->addCellsTemplate( __DIR__ . '/../bs3.latte' );
 		$grid->addCellsTemplate( __DIR__ . '/def.latte' );
+
+		$grid->setNewRecordCallback( $this->newRecord );
 
 		$grid->setDataSourceCallback( $this->dataSource );
 
@@ -52,9 +54,6 @@ class CommodityGrid extends Control
 			$form->addText( 'info', 'Info' );
 			$form->addText( 'parent', 'Parent' )
 				->setDisabled();
-
-			$form->addSubmit( 'save', 'Save' )->getControlPrototype()->class = 'btn btn-primary';
-			$form->addSubmit( 'cancel', 'Cancel' )->getControlPrototype()->class = 'btn';
 
 			$form->setDefaults( $row ? $row->restoreData() : NULL );
 
@@ -80,9 +79,17 @@ class CommodityGrid extends Control
 	}
 
 
+	public function newRecord()
+	{
+		$this->facade->newCommodity();
+	}
+
+
 	public function saveData( Form $form )
 	{
-		$this->facade->saveCommodity( $form->getValues() );
+		$data = $form->getValues( TRUE );
+		print_r( $data );
+		die;
 		$this->flashMessage( 'Record saved.' );
 		$this->redrawControl( 'flashes' );
 	}

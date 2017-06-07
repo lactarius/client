@@ -38,7 +38,7 @@ class CustomerPresenter extends BasePresenter
 		$control = $this->clientFormFactory->create();
 		$control->onSave[] = function ( Client $client ) {
 			$this->flashMessage( 'Client ' . $client->getFullname() . ' was successfully saved.' );
-			$this->redirect( 'Default:' );
+			$this->redirect( 'Customer:' );
 		};
 
 		return $control;
