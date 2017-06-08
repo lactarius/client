@@ -1,0 +1,28 @@
+{define row}
+	<tr id="rows-$row->id">
+		{foreach $columns as $column}
+			{include col-$column}
+		{/foreach}
+	</tr>
+{/define}
+
+<div class="container">
+	<table class="table table-bordered">
+		<thead>
+		<tr>
+			{foreach $columns as $column}
+				<td>{$column}</td>
+			{/foreach}
+		</tr>
+		</thead>
+		<tbody>
+		{if count($data)}
+			{foreach $data as $row}
+				<tr>
+					{include #row row => $row}
+				</tr>
+			{/foreach}
+		{/if}
+		</tbody>
+	</table>
+</div>
