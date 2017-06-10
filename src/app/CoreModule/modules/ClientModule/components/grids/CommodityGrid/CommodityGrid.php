@@ -40,7 +40,10 @@ class CommodityGrid extends Control
 
 		$grid->makeEditable();
 
-		$grid->setDataSource($this->dataSource);
+		$grid->makeAdding()
+			->setAddNew( $this->addNew );
+
+		$grid->setDataSource( $this->dataSource );
 
 		return $grid;
 	}
@@ -49,6 +52,27 @@ class CommodityGrid extends Control
 	public function dataSource( $filters, $sorts )
 	{
 		return $this->facade->getCommodityRepo()->findBy( [] );
+	}
+
+
+	public function saveData( $data )
+	{
+		 $commodity=$this->facade->saveCommodity( $data, TRUE );
+		 if($commodity){
+		 	$this->flashMessage('Record successfully saved.');
+		 	$this->redrawControl('flash');
+		 }
+	}
+
+
+	public function addNew()
+	{
+		$commodity = $this->facade->newCommodity();
+		if ( $commodity ) {
+			$this->flashMessage( 'Blank record successfully added. Edid it!' );
+			$this->redrawControl( 'grid' );
+		}
+		return $commodity;
 	}
 
 

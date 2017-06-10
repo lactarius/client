@@ -1,5 +1,11 @@
 {snippet grid}
 
+	{snippet flash}
+		<div n:foreach="$flashes as $flash" class="alert alert-{$flash->type}">
+			{$flash->message}
+		</div>
+	{/snippet}
+
 	{define row}
 		<tr n:snippet="row-{$row->$key}">
 			{foreach $columns as $column}
@@ -43,7 +49,7 @@
 				{/foreach}
 				{if $editable}
 					<th class="col-actions-global col-sm-2">
-						<button class="b-new btn btn-primary btn-xs">
+						<button class="b-new ajax btn btn-primary btn-xs">
 							<span class="glyphicon glyphicon-plus"></span> New
 						</button>
 					</th>

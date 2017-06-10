@@ -77,6 +77,10 @@
         activateEdit();
         activateRemove();
       }
+
+      if (opts.adding) {
+        activateNew();
+      }
     }
 
     /**
@@ -141,15 +145,15 @@
       $saveButton.show().click(function () {
         if (compareCash(trId)) {
           var data = [];
+          data.push({name: 'cmd', value: 'save'});
           data.push({name: 'id', value: elId});
           $.each(opts.cols, function (name) {
             data.push({name: name, value: $(selector + name).text().trim()});
           });
-          console.log(data);
           $.post(opts.server, data,
             function (payload) {
-              if (payload.result === true) {
-                alert('Ok');
+              if (payload.result) {
+                console.log('Record saved: ' + elId);
               }
             }
           );
@@ -169,6 +173,24 @@
         restoreCash(trId);
         actionButtons(['save', 'cancel'], false, trId);
         init();
+      });
+    }
+
+    /**
+     * Activate new button
+     */
+    function activateNew () {
+      if (aNew) return false;
+      aNew = true;
+      var $newButton = $('th.col-actions-global > button.b-new');
+      $newButton.click(function () {
+        var data = [];
+        data.push({name: 'cmd', value: 'new'});
+        $.post(opts.server, data, function (payload) {
+          if (payload.result) {
+            console.log('Record added.');
+          }
+        });
       });
     }
 

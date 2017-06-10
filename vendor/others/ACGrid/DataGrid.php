@@ -32,14 +32,14 @@ class DataGrid extends Control
 	/** @var  string */
 	protected $firstEdit;
 
+	/** @var  callable */
+	protected $saveData;
+
 	/** @var bool */
 	protected $adding = FALSE;
 
 	/** @var  callable */
 	protected $addNew;
-
-	/** @var  callable */
-	protected $saveData;
 
 	/** @var  callable */
 	protected $dataSource;
@@ -118,16 +118,6 @@ class DataGrid extends Control
 
 
 	/**
-	 * @return self (fluent interface)
-	 */
-	public function makeAdding()
-	{
-		$this->adding = TRUE;
-		return $this;
-	}
-
-
-	/**
 	 * @param $saveData
 	 * @return $this
 	 */
@@ -138,6 +128,27 @@ class DataGrid extends Control
 		return $this;
 	}
 
+
+	/**
+	 * @return self (fluent interface)
+	 */
+	public function makeAdding()
+	{
+		$this->adding = TRUE;
+		return $this;
+	}
+
+
+	/**
+	 * @param $addNew
+	 * @return self (fluent interface)
+	 */
+	public function setAddNew( $addNew )
+	{
+		Callback::check( $addNew );
+		$this->addNew = $addNew;
+		return $this;
+	}
 
 	// data source
 
@@ -200,10 +211,16 @@ class DataGrid extends Control
 		$result = FALSE;
 		$post = $this->presenter->getRequest()->getPost();
 
-		$entity = Callback::invokeArgs( $this->saveData, [ $post ] );
-		if ( $entity ) {
-			$result = TRUE;
-		}
+		switch ( $post[ 'cmd' ] ) {
+			case 'save':
+				$entity = Callback::invokeArgs( $this->saveData, [ $post ] );
+				break;
+			case 'new':
+				$entity = Callback::invoke( $this->addNew );
+				break;
+		};
+
+		if ( $entity ) $result = TRUE;
 		$this->presenter->payload->result = $result;
 		$this->presenter->sendPayload();
 	}
