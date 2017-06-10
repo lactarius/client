@@ -5,9 +5,9 @@ namespace Client\Components\Grids;
 /**
  * @author Petr Blazicek 2017
  */
-interface IClientGridFactory
+interface IClientACGridFactory
 {
 
-	/** @return ClientGrid */
+	/** @return ClientACGrid */
 	function create();
 }

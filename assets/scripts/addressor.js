@@ -3,7 +3,7 @@
  *
  * Google geocoding wrapper plugin
  *
- * Petr Blazicek 2016
+ * @author Petr Blazicek 2016
  */
 (function ($) {
 

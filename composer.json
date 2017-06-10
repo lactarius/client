@@ -21,8 +21,7 @@
 		"kdyby/events": "^3.0",
 		"flame/modules": "dev-master",
 		"tomaj/nette-bootstrap-form": "^1.2",
-		"majkl578/nette-identity-doctrine": "^2.2",
-		"nextras/datagrid": "^2.1"
+		"majkl578/nette-identity-doctrine": "^2.2"
 	},
 	"require-dev": {
 		"nette/tester": "@dev"

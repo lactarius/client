@@ -6,8 +6,6 @@ services:
 	- Client\Model\ClientFacade
 	- Client\Model\PurchaseFacade
 	- Client\Model\ShopFacade
-	- Client\Components\Grids\IClientGridFactory
 	- Client\Components\Forms\IClientFormFactory
-	- Client\Components\Grids\IPurchaseGridFactory
 	- Client\Components\Forms\IShopFormFactory
-	- Client\Components\Grids\ICommodityGrid
+	- Client\Components\Grids\ICommodityGridFactory

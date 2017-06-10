@@ -2,8 +2,8 @@
 
 namespace ACGrid;
 
-use Kdyby\Doctrine\EntityRepository;
 use Nette\Application\UI\Control;
+use Nette\Utils\Callback;
 
 /**
  * @author Petr Blazicek 2017
@@ -12,34 +12,110 @@ class DataGrid extends Control
 {
 
 
-	/** @var  EntityRepository */
-	protected $repo;
-
 	/** @var  Column|array */
-	protected $columns;
+	protected $columns = [];
+
+	/** @var  mixed */
+	protected $key = 'id';
 
 	/** @var  array */
-	protected $data = [];
+	protected $filters = [];
 
+	/** @var  array */
+	protected $sorts = [];
 
-	/**
-	 * @param EntityRepository $repo
-	 * @return self (fluent interface)
-	 */
-	public function setRepo( EntityRepository $repo )
-	{
-		$this->repo = $repo;
-		return $this;
-	}
+	/** @var  bool */
+	protected $editable = FALSE;
+
+	/** @var  string */
+	protected $firstEdit;
+
+	/** @var  callable */
+	protected $dataSource;
+
+	/** @var  callable */
+	protected $saveData;
+
+	/** @var  array */
+	protected $defTemplates = [];
 
 
 	/**
 	 * @param $name
 	 * @param null $label
+	 * @param int $type
+	 * @return self (fluent interface)
 	 */
-	public function addColumn( $name, $label = NULL )
+	public function addColumn( $name, $label = NULL, $type = Column::TYPE_TEXT )
 	{
-		$this->columns[] = new Column( $name, $label );
+		$this->columns[] = new Column( $name, $label, $type );
+		if ( count( $this->columns ) === 1 && $type === Column::TYPE_TEXT ) $this->firstEdit = $name;
+		return $this;
+	}
+
+
+	public function getColumns()
+	{
+		foreach ( $this->columns as $column ) {
+			$cols[ $column->name ] = $column->type;
+		}
+
+		return $cols;
+	}
+
+
+	/**
+	 * @return mixed
+	 */
+	public function getKey()
+	{
+		return $this->key;
+	}
+
+
+	/**
+	 * @param mixed $key
+	 * @return self (fluent interface)
+	 */
+	public function setKey( $key )
+	{
+		$this->key = $key;
+		return $this;
+	}
+
+
+	/**
+	 * @return $this
+	 */
+	public function makeEditable()
+	{
+		$this->editable = TRUE;
+		return $this;
+	}
+
+
+	public function setFirstEdit( $name )
+	{
+		$this->firstEdit = $name;
+	}
+
+
+	/**
+	 * @param $dataSource
+	 * @return self (fluent interface)
+	 */
+	public function setDataSource( $dataSource )
+	{
+		Callback::check( $dataSource );
+		$this->dataSource = $dataSource;
+		return $this;
+	}
+
+
+	public function setSaveData( $saveData )
+	{
+		Callback::check( $saveData );
+		$this->saveData = $saveData;
 	}
 
 
@@ -48,18 +124,45 @@ class DataGrid extends Control
 	 */
 	public function getData()
 	{
-		return $this->data;
+		return Callback::invokeArgs( $this->dataSource, [ $this->filters, $this->sorts ] );
 	}
 
 
 	/**
-	 * @param array $data
+	 * @param $path
 	 * @return self (fluent interface)
 	 */
-	public function setData( $data )
+	public function addDefTemplate( $path )
 	{
-		$this->data = $data;
+		$this->defTemplates[] = $path;
 		return $this;
+	}
+
+
+	public function getJsOptions()
+	{
+		$opts = [
+			'server'   => $this->link( 'server!' ),
+			'editable' => $this->editable,
+			'cols'     => $this->getColumns(),
+			'first'    => $this->firstEdit,
+		];
+
+		return json_encode( $opts );
+	}
+
+
+	public function handleServer()
+	{
+		$result = FALSE;
+		$post = $this->presenter->getRequest()->getPost();
+
+		$entity = Callback::invokeArgs( $this->saveData, [ $post ] );
+		if ( $entity ) {
+			$result = TRUE;
+		}
+		$this->presenter->payload->result = $result;
+		$this->presenter->sendPayload();
 	}
 
 
@@ -71,7 +174,12 @@ class DataGrid extends Control
 		$template = $this->template;
 		$template->setFile( __DIR__ . '/dataGrid.latte' );
 		$template->columns = $this->columns;
-		$template->data = $this->data;
+		$template->cols = $this->getColumns();
+		$template->key = $this->key;
+		$template->editable = $this->editable;
+		$template->jsOpts = $this->getJsOptions();
+		$template->data = $this->getData();
+		$template->defTemplates = $this->defTemplates;
 
 		$template->render();
 	}

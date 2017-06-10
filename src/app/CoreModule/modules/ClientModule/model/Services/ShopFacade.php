@@ -67,24 +67,36 @@ class ShopFacade extends BaseFacade
 	}
 
 
-	public function saveCommodity( $data )
+	/**
+	 * Create / update Commodity
+	 *
+	 * @param $data
+	 * @param bool $write
+	 * @return Commodity|mixed
+	 */
+	public function saveCommodity( $data, $write = FALSE )
 	{
 		$commodity = $this->prepareEntity( Commodity::class, $data );
 		$commodity = ShopService::saveCommodity( $commodity, $data );
-		$this->saveAll( $commodity );
+		$this->saveAll( $commodity, $write );
 
 		return $commodity;
 	}
 
 
+	/**
+	 * Create blank Commodity
+	 *
+	 * @return Commodity|null
+	 */
 	public function newCommodity()
 	{
-		if ( $this->commodityRepo->findOneBy( [ 'name' => 'XXXXX' ] ) ) return NULL;
+		if ( $this->commodityRepo->findOneBy( [ 'name' => '@@@@@' ] ) ) return NULL;
 		$parents = $this->commodityRepo->findPairs( [], 'name', [ 'id' => 'ASC', 'name' => 'ASC' ] );
 
 		$commodity = new Commodity();
-		$commodity->setName( 'XXXXX' );
-		$commodity->setInfo( 'YYYYY' );
+		$commodity->setName( '@@@@@' );
+		$commodity->setInfo( '@@@@@' );
 
 		$this->saveAll( $commodity, TRUE );
 

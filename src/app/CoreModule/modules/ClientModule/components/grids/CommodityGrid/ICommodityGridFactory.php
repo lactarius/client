@@ -5,9 +5,9 @@ namespace Client\Components\Grids;
 /**
  * @author Petr Blazicek 2017
  */
-interface IPurchaseGridFactory
+interface ICommodityGridFactory
 {
 
-	/** @return PurchaseGrid */
+	/** @return CommodityGrid */
 	function create();
 }

@@ -3,7 +3,7 @@
 namespace ClientModule;
 
 use Client\Components\Forms\IClientFormFactory;
-use Client\Components\Grids\IClientGridFactory;
+use Client\Components\Grids\IClientACGridFactory;
 use Client\Model\Client;
 
 /**
@@ -12,23 +12,11 @@ use Client\Model\Client;
 class CustomerPresenter extends BasePresenter
 {
 
-	/** @var  IClientGridFactory @inject */
-	public $clientGridFactory;
-
 	/** @var  IClientFormFactory @inject */
 	public $clientFormFactory;
 
+
 	// factories
-
-
-	/**
-	 * @return \Client\Components\Grids\ClientGrid
-	 */
-	protected function createComponentClientGrid()
-	{
-		return $this->clientGridFactory->create();
-	}
-
 
 	/**
 	 * @return \Client\Components\Forms\ClientForm

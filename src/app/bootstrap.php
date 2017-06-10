@@ -12,6 +12,7 @@ $configurator = new Nette\Configurator;
 $configurator->enableDebugger( __DIR__ . '/../log' );
 $configurator->setTempDirectory( __DIR__ . '/../temp' );
 $configurator->createRobotLoader()
+	->addDirectory( __DIR__ . '/../../vendor/others' )
 	->addDirectory( __DIR__ )
 	->register();
 

@@ -3,7 +3,7 @@
 namespace ClientModule;
 
 use Client\Components\Forms\IShopFormFactory;
-use Client\Components\Grids\ICommodityGrid;
+use Client\Components\Grids\ICommodityGridFactory;
 use Client\Model\Shop;
 
 /**
@@ -15,7 +15,7 @@ class ShopPresenter extends BasePresenter
 	/** @var  IShopFormFactory @inject */
 	public $shopFormFactory;
 
-	/** @var  ICommodityGrid @inject */
+	/** @var  ICommodityGridFactory */
 	public $commodityGridFactory;
 
 	// factories
