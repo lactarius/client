@@ -15,7 +15,7 @@ class ShopPresenter extends BasePresenter
 	/** @var  IShopFormFactory @inject */
 	public $shopFormFactory;
 
-	/** @var  ICommodityGridFactory */
+	/** @var  ICommodityGridFactory @inject */
 	public $commodityGridFactory;
 
 	// factories

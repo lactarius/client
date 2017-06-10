@@ -55,6 +55,8 @@
 				{foreach $data as $row}
 					{include #row, row => $row, columns => $columns, key => $key, editable => $editable}
 				{/foreach}
+			{else}
+				<td colspan="{count($columns)+($editable?1:0)}" class="warning">No data</td>
 			{/if}
 			</tbody>
 			<tfoot>

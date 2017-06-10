@@ -24,20 +24,30 @@ class DataGrid extends Control
 	/** @var  array */
 	protected $sorts = [];
 
+	// editing
+
 	/** @var  bool */
 	protected $editable = FALSE;
 
 	/** @var  string */
 	protected $firstEdit;
 
+	/** @var bool */
+	protected $adding = FALSE;
+
 	/** @var  callable */
-	protected $dataSource;
+	protected $addNew;
 
 	/** @var  callable */
 	protected $saveData;
 
+	/** @var  callable */
+	protected $dataSource;
+
 	/** @var  array */
 	protected $defTemplates = [];
+
+	// design
 
 
 	/**
@@ -83,9 +93,11 @@ class DataGrid extends Control
 		return $this;
 	}
 
+	// editing
+
 
 	/**
-	 * @return $this
+	 * @return self (fluent interface)
 	 */
 	public function makeEditable()
 	{
@@ -94,10 +106,40 @@ class DataGrid extends Control
 	}
 
 
+	/**
+	 * @param $name
+	 * @return self (fluent interface)
+	 */
 	public function setFirstEdit( $name )
 	{
 		$this->firstEdit = $name;
+		return $this;
 	}
+
+
+	/**
+	 * @return self (fluent interface)
+	 */
+	public function makeAdding()
+	{
+		$this->adding = TRUE;
+		return $this;
+	}
+
+
+	/**
+	 * @param $saveData
+	 * @return $this
+	 */
+	public function setSaveData( $saveData )
+	{
+		Callback::check( $saveData );
+		$this->saveData = $saveData;
+		return $this;
+	}
+
+
+	// data source
 
 
 	/**
@@ -112,13 +154,6 @@ class DataGrid extends Control
 	}
 
 
-	public function setSaveData( $saveData )
-	{
-		Callback::check( $saveData );
-		$this->saveData = $saveData;
-	}
-
-
 	/**
 	 * @return array
 	 */
@@ -126,6 +161,8 @@ class DataGrid extends Control
 	{
 		return Callback::invokeArgs( $this->dataSource, [ $this->filters, $this->sorts ] );
 	}
+
+	// template / JS
 
 
 	/**
@@ -139,11 +176,15 @@ class DataGrid extends Control
 	}
 
 
+	/**
+	 * @return string
+	 */
 	public function getJsOptions()
 	{
 		$opts = [
 			'server'   => $this->link( 'server!' ),
 			'editable' => $this->editable,
+			'adding'   => $this->adding,
 			'cols'     => $this->getColumns(),
 			'first'    => $this->firstEdit,
 		];
@@ -151,6 +192,8 @@ class DataGrid extends Control
 		return json_encode( $opts );
 	}
 
+
+	// signal receivers
 
 	public function handleServer()
 	{
@@ -165,6 +208,8 @@ class DataGrid extends Control
 		$this->presenter->sendPayload();
 	}
 
+	// render component
+
 
 	/**
 	 * Render DataGrid
@@ -177,6 +222,7 @@ class DataGrid extends Control
 		$template->cols = $this->getColumns();
 		$template->key = $this->key;
 		$template->editable = $this->editable;
+		$template->adding = $this->adding;
 		$template->jsOpts = $this->getJsOptions();
 		$template->data = $this->getData();
 		$template->defTemplates = $this->defTemplates;

@@ -12,6 +12,7 @@ use Nette\ComponentModel\IContainer;
  */
 class CommodityGrid extends Control
 {
+
 	/** @var ShopFacade */
 	private $facade;
 
@@ -22,27 +23,42 @@ class CommodityGrid extends Control
 	 * @param IContainer|NULL $parent
 	 * @param null $name
 	 */
-	public function __construct(ShopFacade $facade, IContainer $parent = NULL, $name = NULL )
+	public function __construct( ShopFacade $facade, IContainer $parent = NULL, $name = NULL )
 	{
 		parent::__construct( $parent, $name );
-		$this->facade=$facade;
+		$this->facade = $facade;
 	}
 
-	protected function createComponentGrid(){
-		$grid=new DataGrid();
 
-		$grid->addColumn('name','Name');
+	protected function createComponentGrid()
+	{
+		$grid = new DataGrid();
 
-		$grid->addColumn('info','Info');
+		$grid->addColumn( 'name', 'Name' );
+
+		$grid->addColumn( 'info', 'Info' );
 
 		$grid->makeEditable();
 
+		$grid->setDataSource($this->dataSource);
 
+		return $grid;
 	}
 
-	public function dataSource($filters,$sorts){
-		return $this->facade->getCommodityRepo()->findBy([]);
+
+	public function dataSource( $filters, $sorts )
+	{
+		return $this->facade->getCommodityRepo()->findBy( [] );
 	}
 
 
+	public function render()
+	{
+		$template = $this->template;
+		$template->setFile( __DIR__ . '/template.latte' );
+		$template->width = 6;
+		$template->title = 'Client';
+
+		$template->render();
+	}
 }
