@@ -38,12 +38,11 @@ class CommodityGrid extends Control
 
 		$grid->addColumn( 'info', 'Info' );
 
-		$grid->makeEditable();
-
-		$grid->makeAdding()
-			->setAddNew( $this->addNew );
-
 		$grid->setDataSource( $this->dataSource );
+
+		$grid->setAddNew( $this->addNew );
+
+		$grid->setRemove( $this->remove );
 
 		return $grid;
 	}
@@ -55,24 +54,21 @@ class CommodityGrid extends Control
 	}
 
 
-	public function saveData( $data )
-	{
-		 $commodity=$this->facade->saveCommodity( $data, TRUE );
-		 if($commodity){
-		 	$this->flashMessage('Record successfully saved.');
-		 	$this->redrawControl('flash');
-		 }
-	}
-
-
 	public function addNew()
 	{
 		$commodity = $this->facade->newCommodity();
-		if ( $commodity ) {
-			$this->flashMessage( 'Blank record successfully added. Edid it!' );
-			$this->redrawControl( 'grid' );
-		}
-		return $commodity;
+		$this->flashMessage( 'Proxy Commodity ' . $commodity->name . ' added. Edit it immediatelly!' );
+		$this->redirect( 'this' );
+	}
+
+
+	public function remove( $id )
+	{
+		$commodity = $this->facade->getCommodityRepo()->find( $id );
+		$name = $commodity->name;
+		$this->facade->removeCommodity( $commodity, TRUE );
+		$this->flashMessage( 'Commodity ' . $name . ' removed.' );
+		$this->redirect( 'this' );
 	}
 
 

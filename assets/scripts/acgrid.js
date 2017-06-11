@@ -217,6 +217,8 @@
   };
 })(jQuery);
 
+/**
 $(document).ready(function () {
   $('div.acgrid').acgrid();
 });
+*/

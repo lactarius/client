@@ -1,0 +1,38 @@
+<div class="container">
+	<div n:foreach="$flashes as $flash" class="alert alert-{$flash->type}">
+		{$flash->message}
+	</div>
+
+	<table class="table table-bordered table-striped">
+		<thead>
+		<tr>
+			{foreach $columns as $column}
+				<th>{$column->label}</th>
+			{/foreach}
+			<th>
+				<a n:href="server! 1">New</a>
+			</th>
+		</tr>
+		</thead>
+		<tbody>
+		{form editForm}
+			{foreach $data as $row}
+				<tr>
+					{foreach $columns as $column}
+						<td>
+							{$row->{$column->name}}
+						</td>
+					{/foreach}
+					<td>
+						<a n:href="server! 'edit', $row->id">Edit</a>
+						<a n:href="server! 3, $row->id">Remove</a>
+					</td>
+				</tr>
+			{/foreach}
+		{/form}
+		</tbody>
+		<tfoot>
+		<td colspan="{count($columns)+1}">ACGrid</td>
+		</tfoot>
+	</table>
+</div>

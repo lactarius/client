@@ -102,4 +102,20 @@ class ShopFacade extends BaseFacade
 
 		return $commodity;
 	}
+
+
+	/**
+	 * Remove Commodity
+	 *
+	 * @param $mixed
+	 * @param bool $write
+	 * @return EntityManager
+	 */
+	public function removeCommodity( $mixed, $write = FALSE )
+	{
+		$commodity = $mixed instanceof Commodity ? $mixed : $this->commodityRepo->find( $mixed );
+		$this->em->remove( $commodity );
+		if ( $write ) $this->flush();
+		return TRUE;
+	}
 }

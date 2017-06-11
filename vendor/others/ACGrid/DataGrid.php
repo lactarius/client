@@ -3,6 +3,7 @@
 namespace ACGrid;
 
 use Nette\Application\UI\Control;
+use Nette\Forms\Form;
 use Nette\Utils\Callback;
 
 /**
@@ -11,6 +12,9 @@ use Nette\Utils\Callback;
 class DataGrid extends Control
 {
 
+	const CMD_ADD = 1;
+	const CMD_EDIT = 2;
+	const CMD_REMOVE = 3;
 
 	/** @var  Column|array */
 	protected $columns = [];
@@ -42,12 +46,38 @@ class DataGrid extends Control
 	protected $addNew;
 
 	/** @var  callable */
+	protected $remove;
+
+	// source
+
+	/** @var  callable */
 	protected $dataSource;
+
+	// design
 
 	/** @var  array */
 	protected $defTemplates = [];
 
-	// design
+
+	// factories
+
+	protected function createComponentEditForm()
+	{
+		$form = new Form();
+
+		$form->setAction( $this->link( 'server!' ) );
+
+		$form->addText( 'name' );
+
+		$form->addText( 'info' );
+
+		$form->addSubmit( 'save' );
+		$form->onSubmit[] = $this->saveData;
+
+		$form->setDefaults( [ 'name' => 'prdel', 'info' => 'mrdel' ] );
+
+		return $form;
+	}
 
 
 	/**
@@ -150,6 +180,18 @@ class DataGrid extends Control
 		return $this;
 	}
 
+
+	/**
+	 * @param $remove
+	 * @return self (fluent interface)
+	 */
+	public function setRemove( $remove )
+	{
+		Callback::check( $remove );
+		$this->remove = $remove;
+		return $this;
+	}
+
 	// data source
 
 
@@ -206,23 +248,17 @@ class DataGrid extends Control
 
 	// signal receivers
 
-	public function handleServer()
+	public function handleServer( $cmd, $data = NULL )
 	{
-		$result = FALSE;
-		$post = $this->presenter->getRequest()->getPost();
-
-		switch ( $post[ 'cmd' ] ) {
-			case 'save':
-				$entity = Callback::invokeArgs( $this->saveData, [ $post ] );
+		switch ( $cmd ) {
+			case self::CMD_ADD:     // add new record
+				Callback::invoke( $this->addNew );
 				break;
-			case 'new':
-				$entity = Callback::invoke( $this->addNew );
+			case self::CMD_EDIT:    // edit record
 				break;
-		};
-
-		if ( $entity ) $result = TRUE;
-		$this->presenter->payload->result = $result;
-		$this->presenter->sendPayload();
+			case self::CMD_REMOVE:  // remove record
+				Callback::invokeArgs( $this->remove, [ $data ] );
+		}
 	}
 
 	// render component
@@ -234,7 +270,7 @@ class DataGrid extends Control
 	public function render()
 	{
 		$template = $this->template;
-		$template->setFile( __DIR__ . '/dataGrid.latte' );
+		$template->setFile( __DIR__ . '/tpl.latte' );
 		$template->columns = $this->columns;
 		$template->cols = $this->getColumns();
 		$template->key = $this->key;
