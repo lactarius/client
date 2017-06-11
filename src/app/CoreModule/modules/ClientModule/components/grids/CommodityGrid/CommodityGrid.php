@@ -4,13 +4,13 @@ namespace Client\Components\Grids;
 
 use ACGrid\DataGrid;
 use Client\Model\ShopFacade;
-use Nette\Application\UI\Control;
 use Nette\ComponentModel\IContainer;
+use Nette\Forms\Form;
 
 /**
  * @author Petr Blazicek 2017
  */
-class CommodityGrid extends Control
+class CommodityGrid extends DataGrid
 {
 
 	/** @var ShopFacade */
@@ -30,55 +30,56 @@ class CommodityGrid extends Control
 	}
 
 
-	protected function createComponentGrid()
+	protected function build()
 	{
-		$grid = new DataGrid();
+		$this->addColumn( 'name', 'Name' );
 
-		$grid->addColumn( 'name', 'Name' );
-
-		$grid->addColumn( 'info', 'Info' );
-
-		$grid->setDataSource( $this->dataSource );
-
-		$grid->setAddNew( $this->addNew );
-
-		$grid->setRemove( $this->remove );
-
-		return $grid;
+		$this->addColumn( 'info', 'Info' );
 	}
 
 
-	public function dataSource( $filters, $sorts )
+	public function dataSource()
 	{
 		return $this->facade->getCommodityRepo()->findBy( [] );
 	}
 
 
-	public function addNew()
+	public function addRecord()
 	{
-		$commodity = $this->facade->newCommodity();
-		$this->flashMessage( 'Proxy Commodity ' . $commodity->name . ' added. Edit it immediatelly!' );
-		$this->redirect( 'this' );
+		$commodity= $this->facade->newCommodity();
+		if($commodity){
+			$this->flashMessage('New dummy record successfully created. Edit it!');
+			$this->redirect('this');
+		}
 	}
 
 
-	public function remove( $id )
+	public function removeRecord( $id )
 	{
-		$commodity = $this->facade->getCommodityRepo()->find( $id );
-		$name = $commodity->name;
-		$this->facade->removeCommodity( $commodity, TRUE );
-		$this->flashMessage( 'Commodity ' . $name . ' removed.' );
-		$this->redirect( 'this' );
+		$res= $this->facade->removeCommodity($id,TRUE);
+		if($res){
+			$this->flashMessage('Record removed.');
+			$this->redirect('this');
+		}
 	}
 
 
-	public function render()
+	protected function createComponentEditForm()
 	{
-		$template = $this->template;
-		$template->setFile( __DIR__ . '/template.latte' );
-		$template->width = 6;
-		$template->title = 'Client';
+		$form = new Form();
 
-		$template->render();
+		$form->addText( 'name' );
+		$form->addText( 'info' );
+
+		$form->addSubmit( 'save' );
+		$form->onSubmit[] = $this->processEditForm;
+
+		return $form;
+	}
+
+
+	public function processEditForm( Form $form )
+	{
+		$data = $form->getValues( TRUE );
 	}
 }

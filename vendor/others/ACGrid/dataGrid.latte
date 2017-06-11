@@ -1,76 +1,47 @@
-{snippet grid}
+<div class="container-fluid">
+	{include #flash}
+	{include #grid}
+</div>
 
-	{snippet flash}
-		<div n:foreach="$flashes as $flash" class="alert alert-{$flash->type}">
-			{$flash->message}
-		</div>
-	{/snippet}
+{define flash}
+	<div n:foreach="$flashes as $flash" class="alert alert-{$flash->type === 'error' ? 'danger' : $flash-type}">
+		{$flash->message}
+	</div>
+{/define}
 
-	{define row}
-		<tr n:snippet="row-{$row->$key}">
-			{foreach $columns as $column}
-				<td class="grid-col-{$column->name}">
-					{ifset #col-$column->name}
-						{include #"col-{$column->name}", row => $row}
-					{else}
-						{$row->{$column->name}}
-					{/ifset}
-				</td>
-			{/foreach}
-			{if $editable}
-				<td class="col-actions">
-					<button class="b-edit btn btn-primary btn-xs">
-						<span class="glyphicon glyphicon-pencil"></span> Edit
-					</button>
-					<button class="b-remove btn btn-default btn-xs">
-						<span class="glyphicon glyphicon-minus"></span> Remove
-					</button>
-					<button class="b-save btn btn-primary btn-xs collapse">
-						<span class="glyphicon glyphicon-ok"></span> Save
-					</button>
-					<button class="b-cancel btn btn-default btn-xs collapse">
-						<span class="glyphicon glyphicon-remove"></span> Cancel
-					</button>
-				</td>
-			{/if}
-		</tr>
-	{/define}
-
-	{foreach $defTemplates as $defTemplate}
-		{includeblock $defTemplate}
-	{/foreach}
-
-	<div class="acgrid container" data-opts='{!$jsOpts}'>
+{define grid}
+	<div class="container">
 		<table class="table table-bordered table-striped">
 			<thead>
 			<tr>
 				{foreach $columns as $column}
 					<th>{$column->label}</th>
 				{/foreach}
-				{if $editable}
-					<th class="col-actions-global col-sm-2">
-						<button class="b-new ajax btn btn-primary btn-xs">
-							<span class="glyphicon glyphicon-plus"></span> New
-						</button>
-					</th>
-				{/if}
+				<th>
+					<a n:href="server! 1">New</a>
+				</th>
 			</tr>
 			</thead>
 			<tbody>
-			{if count($data)}
+			{form editForm}
 				{foreach $data as $row}
-					{include #row, row => $row, columns => $columns, key => $key, editable => $editable}
+					<tr>
+						{foreach $columns as $column}
+							<td>
+								{$row->{$column->name}}
+							</td>
+						{/foreach}
+						<td>
+							<a n:href="server! 2, $row->id">Edit</a>
+							<a n:href="server! 3, $row->id">Remove</a>
+						</td>
+					</tr>
 				{/foreach}
-			{else}
-				<td colspan="{count($columns)+($editable?1:0)}" class="warning">No data</td>
-			{/if}
+			{/form}
 			</tbody>
 			<tfoot>
-			<tr>
-				<td colspan="{count($columns)+($editable?1:0)}">PB-Soft 2017</td>
-			</tr>
+			<td colspan="{count($columns)+1}">ACGrid</td>
 			</tfoot>
 		</table>
 	</div>
-
-{/snippet}
+{/define}

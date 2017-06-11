@@ -4,6 +4,7 @@ namespace ACGrid;
 
 use Nette\Application\UI\Control;
 use Nette\Forms\Form;
+use Nette\InvalidArgumentException;
 use Nette\Utils\Callback;
 
 /**
@@ -16,11 +17,10 @@ class DataGrid extends Control
 	const CMD_EDIT = 2;
 	const CMD_REMOVE = 3;
 
+	// structure
+
 	/** @var  Column|array */
 	protected $columns = [];
-
-	/** @var  mixed */
-	protected $key = 'id';
 
 	/** @var  array */
 	protected $filters = [];
@@ -28,73 +28,48 @@ class DataGrid extends Control
 	/** @var  array */
 	protected $sorts = [];
 
+	/** @var  mixed */
+	protected $key = 'id';
+
 	// editing
 
 	/** @var  bool */
 	protected $editable = FALSE;
 
-	/** @var  string */
-	protected $firstEdit;
-
-	/** @var  callable */
-	protected $saveData;
-
 	/** @var bool */
 	protected $adding = FALSE;
-
-	/** @var  callable */
-	protected $addNew;
-
-	/** @var  callable */
-	protected $remove;
-
-	// source
-
-	/** @var  callable */
-	protected $dataSource;
 
 	// design
 
 	/** @var  array */
-	protected $defTemplates = [];
+	protected $stencils = [];
 
 
 	// factories
 
-	protected function createComponentEditForm()
-	{
-		$form = new Form();
-
-		$form->setAction( $this->link( 'server!' ) );
-
-		$form->addText( 'name' );
-
-		$form->addText( 'info' );
-
-		$form->addSubmit( 'save' );
-		$form->onSubmit[] = $this->saveData;
-
-		$form->setDefaults( [ 'name' => 'prdel', 'info' => 'mrdel' ] );
-
-		return $form;
-	}
-
+	// content
 
 	/**
+	 * Add new grid column
+	 *
 	 * @param $name
 	 * @param null $label
 	 * @param int $type
-	 * @return self (fluent interface)
+	 * @return $this
 	 */
 	public function addColumn( $name, $label = NULL, $type = Column::TYPE_TEXT )
 	{
 		$this->columns[] = new Column( $name, $label, $type );
-		if ( count( $this->columns ) === 1 && $type === Column::TYPE_TEXT ) $this->firstEdit = $name;
 		return $this;
 	}
 
 
-	public function getColumns()
+	/**
+	 * Return column list [ name => type ]
+	 *
+	 * @return array
+	 */
+	public function getColumnList()
 	{
 		foreach ( $this->columns as $column ) {
 			$cols[ $column->name ] = $column->type;
@@ -105,15 +80,8 @@ class DataGrid extends Control
 
 
 	/**
-	 * @return mixed
-	 */
-	public function getKey()
-	{
-		return $this->key;
-	}
-
-
-	/**
+	 * Set primary key
+	 *
 	 * @param mixed $key
 	 * @return self (fluent interface)
 	 */
@@ -127,9 +95,11 @@ class DataGrid extends Control
 
 
 	/**
+	 * Make grid editable
+	 *
 	 * @return self (fluent interface)
 	 */
-	public function makeEditable()
+	public function allowEdit()
 	{
 		$this->editable = TRUE;
 		return $this;
@@ -137,99 +107,59 @@ class DataGrid extends Control
 
 
 	/**
-	 * @param $name
+	 * Dummy record can be added
+	 *
 	 * @return self (fluent interface)
 	 */
-	public function setFirstEdit( $name )
-	{
-		$this->firstEdit = $name;
-		return $this;
-	}
-
-
-	/**
-	 * @param $saveData
-	 * @return $this
-	 */
-	public function setSaveData( $saveData )
-	{
-		Callback::check( $saveData );
-		$this->saveData = $saveData;
-		return $this;
-	}
-
-
-	/**
-	 * @return self (fluent interface)
-	 */
-	public function makeAdding()
+	public function allowAdd()
 	{
 		$this->adding = TRUE;
 		return $this;
 	}
 
 
-	/**
-	 * @param $addNew
-	 * @return self (fluent interface)
-	 */
-	public function setAddNew( $addNew )
+	public function addRecord()
 	{
-		Callback::check( $addNew );
-		$this->addNew = $addNew;
-		return $this;
 	}
 
 
-	/**
-	 * @param $remove
-	 * @return self (fluent interface)
-	 */
-	public function setRemove( $remove )
+	public function editRecord( $id, $data )
 	{
-		Callback::check( $remove );
-		$this->remove = $remove;
-		return $this;
 	}
+
+
+	public function removeRecord( $id )
+	{
+	}
+
 
 	// data source
 
-
-	/**
-	 * @param $dataSource
-	 * @return self (fluent interface)
-	 */
-	public function setDataSource( $dataSource )
+	public function dataSource()
 	{
-		Callback::check( $dataSource );
-		$this->dataSource = $dataSource;
-		return $this;
-	}
-
-
-	/**
-	 * @return array
-	 */
-	public function getData()
-	{
-		return Callback::invokeArgs( $this->dataSource, [ $this->filters, $this->sorts ] );
 	}
 
 	// template / JS
 
 
 	/**
-	 * @param $path
-	 * @return self (fluent interface)
+	 * Grid builder
 	 */
-	public function addDefTemplate( $path )
+	protected function build()
 	{
-		$this->defTemplates[] = $path;
+	}
+
+
+	public function addStencil( $path )
+	{
+		$this->stencils[] = $path;
 		return $this;
 	}
 
 
 	/**
+	 * Assemble javascript options
+	 *
 	 * @return string
 	 */
 	public function getJsOptions()
@@ -238,8 +168,7 @@ class DataGrid extends Control
 			'server'   => $this->link( 'server!' ),
 			'editable' => $this->editable,
 			'adding'   => $this->adding,
-			'cols'     => $this->getColumns(),
-			'first'    => $this->firstEdit,
+			'cols'     => $this->getColumnList(),
 		];
 
 		return json_encode( $opts );
@@ -248,16 +177,23 @@ class DataGrid extends Control
 
 	// signal receivers
 
+
+	/**
+	 * Signal handler
+	 *
+	 * @param $cmd
+	 * @param null $data
+	 */
 	public function handleServer( $cmd, $data = NULL )
 	{
 		switch ( $cmd ) {
-			case self::CMD_ADD:     // add new record
-				Callback::invoke( $this->addNew );
+			case self::CMD_ADD:
+				$this->addRecord();
 				break;
-			case self::CMD_EDIT:    // edit record
+			case self::CMD_EDIT:
 				break;
-			case self::CMD_REMOVE:  // remove record
-				Callback::invokeArgs( $this->remove, [ $data ] );
+			case self::CMD_REMOVE:
+				$this->removeRecord( $data );
 		}
 	}
 
@@ -269,16 +205,17 @@ class DataGrid extends Control
 	 */
 	public function render()
 	{
+		$this->build();
+
 		$template = $this->template;
-		$template->setFile( __DIR__ . '/tpl.latte' );
+		$template->setFile( __DIR__ . '/dataGrid.latte' );
 		$template->columns = $this->columns;
-		$template->cols = $this->getColumns();
 		$template->key = $this->key;
 		$template->editable = $this->editable;
 		$template->adding = $this->adding;
 		$template->jsOpts = $this->getJsOptions();
-		$template->data = $this->getData();
-		$template->defTemplates = $this->defTemplates;
+		$template->data = $this->dataSource();
+		$template->stencils = $this->stencils;
 
 		$template->render();
 	}
