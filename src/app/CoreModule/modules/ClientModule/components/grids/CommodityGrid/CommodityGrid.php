@@ -6,6 +6,7 @@ use ACGrid\DataGrid;
 use Client\Model\ShopFacade;
 use Nette\Application\UI\Form;
 use Nette\ComponentModel\IContainer;
+use Nette\Forms\Container;
 
 /**
  * @author Petr Blazicek 2017
@@ -44,35 +45,39 @@ class CommodityGrid extends DataGrid
 	}
 
 
-	protected function createComponentEditForm()
+	public function createEditContainer()
 	{
-		$form = new Form();
+		$container = new Container();
 
-		$form->addHidden( 'id' );
-
-		$form->addText( 'name' )
-			->setRequired()
+		$container->addHidden( 'id' );
+		$container->addText( 'name' )
 			->setAttribute( 'autofocus' );
+		$container->addText( 'info' );
 
-		$form->addText( 'info' );
+		if ( $this->id ) $container->setDefaults( $this->facade->restoreCommodity( $this->id ) );
 
-		$form->addSubmit( 'save', 'Save' );
-		$form->onSuccess[] = [ $this, 'saveRecord' ];
-
-		if ( $this->id ) $form->setDefaults( $this->facade->restoreCommodity( $this->id ) );
-
-		return $form;
+		return $container;
 	}
 
 
 	public function saveRecord( Form $form )
 	{
-		$data = $form->getValues( TRUE );
-		$commodity = $this->facade->saveCommodity( $data, TRUE );
-		if ( $commodity ) {
-			$this->flashMessage( 'Commodity ' . $commodity->getName() . ' was successfully saved.' );
-			$this->presenter->redirect( 'this', [ 'id' => NULL ] );
+		if ( $form[ 'save' ]->isSubmittedBy() ) {
+			$data = $form->getValues( TRUE );
+			$commodity = $this->facade->saveCommodity( $data[ 'inner' ], TRUE );
+			if ( $commodity ) {
+				$this->flashMessage( 'Commodity ' . $commodity->getName() . ' was successfully saved.' );
+			} else {
+				$this->flashMessage( 'Commodity was not saved.', 'error' );
+			}
 		}
+
+		if ( $this->presenter->isAjax() ) {
+			//file_put_contents(TEMP_DIR.'/ajax.txt','Rubyyy!!');
+			$this->setId( NULL );
+			$this->presenter->redrawControl( 'grid' );
+		}
+		//$this->presenter->redirect( 'this', [ 'id' => NULL ] );
 	}
 
 
@@ -81,7 +86,11 @@ class CommodityGrid extends DataGrid
 		$commodity = $this->facade->newCommodity();
 		if ( $commodity ) {
 			$this->flashMessage( 'New dummy record successfully created. Edit it!' );
-			$this->redirect( 'this' );
+			if ( $this->presenter->isAjax() ) {
+				$this->redrawControl( 'grid' );
+			} else {
+				$this->redirect( 'this' );
+			}
 		}
 	}
 
@@ -91,7 +100,11 @@ class CommodityGrid extends DataGrid
 		$res = $this->facade->removeCommodity( $id, TRUE );
 		if ( $res ) {
 			$this->flashMessage( 'Record removed.' );
-			$this->redirect( 'this' );
+			if ( $this->presenter->isAjax() ) {
+				$this->redrawControl( 'grid' );
+			} else {
+				$this->redirect( 'this' );
+			}
 		}
 	}
 }

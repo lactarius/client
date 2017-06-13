@@ -1,3 +1,3 @@
-$( function () {
-	$.nette.init();
-} );
+$(function () {
+  $.nette.init();
+});

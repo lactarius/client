@@ -4,6 +4,7 @@ namespace ACGrid;
 
 use Nette\Application\UI\Control;
 use Nette\Application\UI\Form;
+use Nette\Forms\Container;
 
 /**
  * @author Petr Blazicek 2017
@@ -46,7 +47,28 @@ class DataGrid extends Control
 	/** @var  array */
 	protected $stencils = [];
 
+
 	// factories
+
+	protected function createComponentEditForm()
+	{
+		$form = new Form();
+
+		$form->getElementPrototype()->class('ajax');
+
+		$form[ 'inner' ] = $this->createEditContainer();
+
+		$form->addSubmit( 'save', 'Save' );
+		$form->addSubmit( 'cancel', 'Cancel' );
+		$form->onSuccess[] = [ $this, 'saveRecord' ];
+
+		return $form;
+	}
+
+
+	public function createEditContainer()
+	{
+	}
 
 	// content
 
@@ -206,15 +228,12 @@ class DataGrid extends Control
 				$this->addRecord();
 				break;
 			case self::CMD_EDIT:
-				$this->presenter->redirect( 'this', [ 'id' => $data ] );
+				//$this->presenter->redirect( 'this', [ 'id' => $data ] );
+				$this->setId($data);
+				$this->redrawControl('grid');
 				break;
 			case self::CMD_REMOVE:
 				$this->removeRecord( $data );
-				break;
-			case self::CMD_SAVE:
-				print_r( 'Rubyyy!!' );
-				die;
-				$this->presenter->redirect( 'this', [ 'id' => NULL ] );
 		}
 	}
 

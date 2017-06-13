@@ -1,55 +1,58 @@
 <div class="container-fluid">
-	{include #flash}
-	{include #grid}
-</div>
+	{snippet grid}
+		{snippet flash}
+			<div n:foreach="$flashes as $flash"
+					class="alert alert-{$flash->type === 'error' ? 'danger' : $flash->type} fade">
+				{$flash->message}
+			</div>
+		{/snippet}
 
-{define flash}
-	<div n:foreach="$flashes as $flash" class="alert alert-{$flash->type === 'error' ? 'danger' : $flash->type}">
-		{$flash->message}
-	</div>
-{/define}
-
-{define grid}
-	<div class="container">
-		{form editForm}
-			<table class="table table-bordered table-striped">
-				<thead>
-				<tr>
-					{foreach $columns as $column}
-						<th>{$column->label}</th>
-					{/foreach}
-					<th>
-						<a n:href="server! 1">New</a>
-					</th>
-				</tr>
-				</thead>
-				<tbody>
-				{foreach $data as $row}
+		<div class="container">
+			{form editForm}
+				<table class="table table-bordered table-striped">
+					<thead>
 					<tr>
 						{foreach $columns as $column}
-							<td>
-								{if $row->id === $id}
-									{input $column->name}
-								{else}
-									{$row->{$column->name}}
-								{/if}
-							</td>
+							<th>{$column->label}</th>
 						{/foreach}
-						<td>
-							{if $row->id === $id}
-								{input 'save'}
-							{else}
-								<a n:href="server! 2, $row->id">Edit</a>
-								<a n:href="server! 3, $row->id">Remove</a>
-							{/if}
-						</td>
+						<th>
+							<a n:href="server! 1" class="ajax">New</a>
+						</th>
 					</tr>
-				{/foreach}
-				</tbody>
-				<tfoot>
-				<td colspan="{count($columns)+1}">ACGrid</td>
-				</tfoot>
-			</table>
-		{/form}
-	</div>
-{/define}
+					</thead>
+					<tbody>
+					{snippet rows}
+						{foreach $data as $row}
+							<tr n:snippet="row-$row->id">
+								{foreach $columns as $column}
+									<td>
+										{if $row->id === $id}
+											{formContainer inner}
+												{input $column->name, class => 'form-control'}
+											{/formContainer}
+										{else}
+											{$row->{$column->name}}
+										{/if}
+									</td>
+								{/foreach}
+								<td>
+									{if $row->id === $id}
+										{input 'save'}
+										{input 'cancel'}
+									{else}
+										<a n:href="server! 2, $row->id" class="ajax">Edit</a>
+										<a n:href="server! 3, $row->id" class="ajax">Remove</a>
+									{/if}
+								</td>
+							</tr>
+						{/foreach}
+					{/snippet}
+					</tbody>
+					<tfoot>
+					<td colspan="{count($columns)+1}">ACGrid</td>
+					</tfoot>
+				</table>
+			{/form}
+		</div>
+	{/snippet}
+</div>
