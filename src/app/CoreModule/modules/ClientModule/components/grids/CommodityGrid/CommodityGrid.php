@@ -33,6 +33,8 @@ class CommodityGrid extends DataGrid
 
 	protected function build()
 	{
+		$this->addStencil( __DIR__ . '/def.latte' );
+
 		$this->addColumn( 'name', 'Name' );
 		$this->addColumn( 'info', 'Info' );
 
@@ -78,8 +80,9 @@ class CommodityGrid extends DataGrid
 		if ( $this->presenter->isAjax() ) {
 			$this->redrawControl( 'flashes' );
 			$this->redrawControl( 'rows' );
+		} else {
+			$this->presenter->redirect( 'this', [ 'id' => NULL ] );
 		}
-		//$this->presenter->redirect( 'this', [ 'id' => NULL ] );
 	}
 
 

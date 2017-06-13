@@ -1,4 +1,10 @@
-{* ====== FLASH MESSAGES ***********************}
+{* ====== DEFINITION LAYERS ================== *}
+
+{foreach $stencils as $stencil}
+	{includeblock $stencil}
+{/foreach}
+
+{* ====== FLASH MESSAGES ===================== *}
 
 {define flashes}
 	<div n:snippet="flashes">
@@ -8,9 +14,9 @@
 	</div>
 {/define}
 
-{* ====== LINE *********************************}
-
 {snippet grid}
+
+	{* ====== LINE =============================== *}
 
 	{define line}
 		<tr n:snippet="line-{$row->id}">
@@ -21,7 +27,11 @@
 							{input $column->name, class => 'form-control'}
 						{/formContainer}
 					{else}
-						{$row->{$column->name}}
+						{ifset #col-$column->name}
+							{include #"col-{$column->name}", row => $row}
+						{else}
+							{$row->{$column->name}}
+						{/ifset}
 					{/if}
 				</td>
 			{/foreach}
@@ -45,7 +55,6 @@
 		<a n:if="$editable" n:href="server! $cmd['EDIT'], $row->id" class="ajax">{$labels['edit']}</a>
 		<a n:if="$removable" n:href="server! $cmd['REMOVE'], $row->id" class="ajax">{$labels['remove']}</a>
 	{/define}
-
 
 	<div class="container-fluid">
 		{include flashes}
