@@ -34,8 +34,11 @@ class CommodityGrid extends DataGrid
 	protected function build()
 	{
 		$this->addColumn( 'name', 'Name' );
-
 		$this->addColumn( 'info', 'Info' );
+
+		$this->allowAdd()
+			->allowEdit()
+			->allowRemove();
 	}
 
 
@@ -66,16 +69,15 @@ class CommodityGrid extends DataGrid
 			$data = $form->getValues( TRUE );
 			$commodity = $this->facade->saveCommodity( $data[ 'inner' ], TRUE );
 			if ( $commodity ) {
-				$this->flashMessage( 'Commodity ' . $commodity->getName() . ' was successfully saved.' );
+				$this->flashMessage( 'Commodity <strong>' . $commodity->getName() . '</strong> was successfully saved.' );
 			} else {
 				$this->flashMessage( 'Commodity was not saved.', 'error' );
 			}
 		}
 
 		if ( $this->presenter->isAjax() ) {
-			//file_put_contents(TEMP_DIR.'/ajax.txt','Rubyyy!!');
-			$this->setId( NULL );
-			$this->presenter->redrawControl( 'grid' );
+			$this->redrawControl( 'flashes' );
+			$this->redrawControl( 'rows' );
 		}
 		//$this->presenter->redirect( 'this', [ 'id' => NULL ] );
 	}

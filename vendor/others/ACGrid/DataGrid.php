@@ -4,7 +4,6 @@ namespace ACGrid;
 
 use Nette\Application\UI\Control;
 use Nette\Application\UI\Form;
-use Nette\Forms\Container;
 
 /**
  * @author Petr Blazicek 2017
@@ -12,10 +11,19 @@ use Nette\Forms\Container;
 class DataGrid extends Control
 {
 
-	const CMD_ADD = 1;
-	const CMD_EDIT = 2;
-	const CMD_REMOVE = 3;
-	const CMD_SAVE = 4;
+	const CMD = [
+		'ADD'    => 1,
+		'EDIT'   => 2,
+		'REMOVE' => 3,
+	];
+
+	// labels
+
+	protected $labels = [
+		'new'    => 'New',
+		'edit'   => 'Edit',
+		'remove' => 'Remove',
+	];
 
 	// structure
 
@@ -39,6 +47,9 @@ class DataGrid extends Control
 	/** @var bool */
 	protected $adding = FALSE;
 
+	/** @var bool */
+	protected $removable = FALSE;
+
 	/** @var  mixed */
 	protected $id;
 
@@ -54,7 +65,7 @@ class DataGrid extends Control
 	{
 		$form = new Form();
 
-		$form->getElementPrototype()->class('ajax');
+		$form->getElementPrototype()->class( 'ajax' );
 
 		$form[ 'inner' ] = $this->createEditContainer();
 
@@ -143,6 +154,29 @@ class DataGrid extends Control
 
 
 	/**
+	 * Records can be erased
+	 *
+	 * @return self (fluent interface)
+	 */
+	public function allowRemove()
+	{
+		$this->removable = TRUE;
+		return $this;
+	}
+
+
+	/**
+	 * Any action?
+	 *
+	 * @return bool
+	 */
+	public function getActions()
+	{
+		return $this->adding || $this->editable || $this->removable;
+	}
+
+
+	/**
 	 * Editing ID setter
 	 *
 	 * @param $id
@@ -151,6 +185,32 @@ class DataGrid extends Control
 	public function setId( $id )
 	{
 		$this->id = $id;
+		return $this;
+	}
+
+
+	/**
+	 * Button label getter
+	 *
+	 * @param $name
+	 * @return string
+	 */
+	public function getLabel( $name )
+	{
+		return $this->labels[ $name ];
+	}
+
+
+	/**
+	 * Button label setter
+	 *
+	 * @param $name
+	 * @param $label
+	 * @return self (fluent interface)
+	 */
+	public function setLabel( $name, $label )
+	{
+		$this->labels[ $name ] = $label;
 		return $this;
 	}
 
@@ -187,6 +247,12 @@ class DataGrid extends Control
 	}
 
 
+	/**
+	 * Add definition layer
+	 *
+	 * @param $path
+	 * @return self (fluent interface)
+	 */
 	public function addStencil( $path )
 	{
 		$this->stencils[] = $path;
@@ -219,21 +285,20 @@ class DataGrid extends Control
 	 * Signal handler
 	 *
 	 * @param $cmd
-	 * @param null $data
+	 * @param null $id
 	 */
-	public function handleServer( $cmd, $data = NULL )
+	public function handleServer( $cmd, $id = NULL )
 	{
 		switch ( $cmd ) {
-			case self::CMD_ADD:
+			case self::CMD[ 'ADD' ]:
 				$this->addRecord();
 				break;
-			case self::CMD_EDIT:
-				//$this->presenter->redirect( 'this', [ 'id' => $data ] );
-				$this->setId($data);
-				$this->redrawControl('grid');
+			case self::CMD[ 'EDIT' ]:
+				$this->setId( $id );
+				$this->redrawControl( 'grid' );
 				break;
-			case self::CMD_REMOVE:
-				$this->removeRecord( $data );
+			case self::CMD[ 'REMOVE' ]:
+				$this->removeRecord( $id );
 		}
 	}
 
@@ -249,14 +314,18 @@ class DataGrid extends Control
 
 		$template = $this->template;
 		$template->setFile( __DIR__ . '/dataGrid.latte' );
+		$template->stencils = $this->stencils;
+		$template->cmd = self::CMD;
+		$template->labels = $this->labels;
 		$template->columns = $this->columns;
 		$template->key = $this->key;
 		$template->editable = $this->editable;
 		$template->adding = $this->adding;
+		$template->removable = $this->removable;
+		$template->actions = $this->getActions();
 		$template->jsOpts = $this->getJsOptions();
 		$template->data = $this->dataSource();
 		$template->id = $this->id;
-		$template->stencils = $this->stencils;
 
 		$template->render();
 	}
