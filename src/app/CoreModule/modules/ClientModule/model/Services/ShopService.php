@@ -51,4 +51,19 @@ class ShopService
 
 		return $commodity;
 	}
+
+
+	/**
+	 * @param Commodity $commodity
+	 * @return array
+	 */
+	public static function restoreCommodity( Commodity $commodity )
+	{
+		return [
+			'id'     => $commodity->getId(),
+			'name'   => $commodity->getName(),
+			'info'   => $commodity->getInfo(),
+			'parent' => $commodity->getParent() ? $commodity->getParent()->getId() : NULL,
+		];
+	}
 }

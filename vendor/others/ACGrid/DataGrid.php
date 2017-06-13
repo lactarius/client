@@ -4,8 +4,6 @@ namespace ACGrid;
 
 use Nette\Application\UI\Control;
 use Nette\Forms\Form;
-use Nette\InvalidArgumentException;
-use Nette\Utils\Callback;
 
 /**
  * @author Petr Blazicek 2017
@@ -16,6 +14,7 @@ class DataGrid extends Control
 	const CMD_ADD = 1;
 	const CMD_EDIT = 2;
 	const CMD_REMOVE = 3;
+	const CMD_SAVE = 4;
 
 	// structure
 
@@ -39,6 +38,9 @@ class DataGrid extends Control
 	/** @var bool */
 	protected $adding = FALSE;
 
+	/** @var  mixed */
+	protected $id;
+
 	// design
 
 	/** @var  array */
@@ -48,6 +50,7 @@ class DataGrid extends Control
 	// factories
 
 	// content
+
 
 	/**
 	 * Add new grid column
@@ -118,12 +121,25 @@ class DataGrid extends Control
 	}
 
 
+	/**
+	 * Editing ID setter
+	 *
+	 * @param $id
+	 * @return self (fluent interface)
+	 */
+	public function setId( $id )
+	{
+		$this->id = $id;
+		return $this;
+	}
+
+
 	public function addRecord()
 	{
 	}
 
 
-	public function editRecord( $id, $data )
+	public function saveRecord( Form $form )
 	{
 	}
 
@@ -191,9 +207,14 @@ class DataGrid extends Control
 				$this->addRecord();
 				break;
 			case self::CMD_EDIT:
+				$this->presenter->redirect( 'this', [ 'id' => $data ] );
 				break;
 			case self::CMD_REMOVE:
 				$this->removeRecord( $data );
+				break;
+			case self::CMD_SAVE:
+				$v = $data->getValues(TRUE);
+				file_put_contents(TEMP_DIR.'/data.txt',var_export($v,TRUE));
 		}
 	}
 
@@ -215,6 +236,7 @@ class DataGrid extends Control
 		$template->adding = $this->adding;
 		$template->jsOpts = $this->getJsOptions();
 		$template->data = $this->dataSource();
+		$template->id = $this->id;
 		$template->stencils = $this->stencils;
 
 		$template->render();

@@ -53,7 +53,8 @@ class ShopPresenter extends BasePresenter
 	}
 
 
-	public function renderCommodity()
+	public function actionCommodity( $id = NULL )
 	{
+		$this[ 'commodityGrid' ]->setId( $id );
 	}
 }

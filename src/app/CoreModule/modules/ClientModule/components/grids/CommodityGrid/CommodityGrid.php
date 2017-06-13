@@ -44,42 +44,58 @@ class CommodityGrid extends DataGrid
 	}
 
 
+	protected function createComponentEditForm()
+	{
+		$form = new Form();
+
+		$form->setMethod( 'get' );
+
+		$form->addHidden( 'id' );
+
+		$form->addText( 'name' )
+			->addRule( Form::EMAIL, 'Hooovno..' )
+			->setAttribute( 'autofocus' );
+
+		$form->addText( 'info' );
+
+		$form->addSubmit( 'save', 'Save' );
+		$form->onSubmit[] = $this->saveRecord;
+
+		if ( $this->id ) $form->setDefaults( $this->facade->restoreCommodity( $this->id ) );
+
+		return $form;
+	}
+
+
+	public function saveRecord( Form $form )
+	{
+		$data = $form->getValues( TRUE );
+		file_put_contents( TEMP_DIR . '/data.txt', var_export( $data, TRUE ) );
+
+		$commodity = $this->facade->saveCommodity( $data, TRUE );
+		if ( $commodity ) {
+			$this->flashMessage( 'Commodity ' . $commodity->name . ' was successfully updated.' );
+			$this->presenter->redirect( 'this', [ 'id' => NULL ] );
+		}
+	}
+
+
 	public function addRecord()
 	{
-		$commodity= $this->facade->newCommodity();
-		if($commodity){
-			$this->flashMessage('New dummy record successfully created. Edit it!');
-			$this->redirect('this');
+		$commodity = $this->facade->newCommodity();
+		if ( $commodity ) {
+			$this->flashMessage( 'New dummy record successfully created. Edit it!' );
+			$this->redirect( 'this' );
 		}
 	}
 
 
 	public function removeRecord( $id )
 	{
-		$res= $this->facade->removeCommodity($id,TRUE);
-		if($res){
-			$this->flashMessage('Record removed.');
-			$this->redirect('this');
+		$res = $this->facade->removeCommodity( $id, TRUE );
+		if ( $res ) {
+			$this->flashMessage( 'Record removed.' );
+			$this->redirect( 'this' );
 		}
-	}
-
-
-	protected function createComponentEditForm()
-	{
-		$form = new Form();
-
-		$form->addText( 'name' );
-		$form->addText( 'info' );
-
-		$form->addSubmit( 'save' );
-		$form->onSubmit[] = $this->processEditForm;
-
-		return $form;
-	}
-
-
-	public function processEditForm( Form $form )
-	{
-		$data = $form->getValues( TRUE );
 	}
 }

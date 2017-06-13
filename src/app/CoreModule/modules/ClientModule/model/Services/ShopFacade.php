@@ -85,6 +85,20 @@ class ShopFacade extends BaseFacade
 
 
 	/**
+	 * Return Commodity data
+	 *
+	 * @param $id
+	 * @return array|bool
+	 */
+	public function restoreCommodity( $id )
+	{
+		$commodity = $this->commodityRepo->find( $id );
+		if ( $commodity ) return ShopService::restoreCommodity( $commodity );
+		return FALSE;
+	}
+
+
+	/**
 	 * Create blank Commodity
 	 *
 	 * @return Commodity|null
