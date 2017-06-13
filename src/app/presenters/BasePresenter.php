@@ -12,7 +12,7 @@ abstract class BasePresenter extends Nette\Application\UI\Presenter
 
 	/**
 	 * Adjust layouts searching algo
-	 * 
+	 *
 	 * @return string
 	 */
 	public function formatLayoutTemplateFiles()

@@ -3,7 +3,7 @@
 namespace ACGrid;
 
 use Nette\Application\UI\Control;
-use Nette\Forms\Form;
+use Nette\Application\UI\Form;
 
 /**
  * @author Petr Blazicek 2017
@@ -45,7 +45,6 @@ class DataGrid extends Control
 
 	/** @var  array */
 	protected $stencils = [];
-
 
 	// factories
 
@@ -213,8 +212,9 @@ class DataGrid extends Control
 				$this->removeRecord( $data );
 				break;
 			case self::CMD_SAVE:
-				$v = $data->getValues(TRUE);
-				file_put_contents(TEMP_DIR.'/data.txt',var_export($v,TRUE));
+				print_r( 'Rubyyy!!' );
+				die;
+				$this->presenter->redirect( 'this', [ 'id' => NULL ] );
 		}
 	}
 

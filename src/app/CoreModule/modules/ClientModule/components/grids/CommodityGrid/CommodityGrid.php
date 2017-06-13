@@ -4,8 +4,8 @@ namespace Client\Components\Grids;
 
 use ACGrid\DataGrid;
 use Client\Model\ShopFacade;
+use Nette\Application\UI\Form;
 use Nette\ComponentModel\IContainer;
-use Nette\Forms\Form;
 
 /**
  * @author Petr Blazicek 2017
@@ -48,18 +48,16 @@ class CommodityGrid extends DataGrid
 	{
 		$form = new Form();
 
-		$form->setMethod( 'get' );
-
 		$form->addHidden( 'id' );
 
 		$form->addText( 'name' )
-			->addRule( Form::EMAIL, 'Hooovno..' )
+			->setRequired()
 			->setAttribute( 'autofocus' );
 
 		$form->addText( 'info' );
 
 		$form->addSubmit( 'save', 'Save' );
-		$form->onSubmit[] = $this->saveRecord;
+		$form->onSuccess[] = [ $this, 'saveRecord' ];
 
 		if ( $this->id ) $form->setDefaults( $this->facade->restoreCommodity( $this->id ) );
 
@@ -70,11 +68,9 @@ class CommodityGrid extends DataGrid
 	public function saveRecord( Form $form )
 	{
 		$data = $form->getValues( TRUE );
-		file_put_contents( TEMP_DIR . '/data.txt', var_export( $data, TRUE ) );
-
 		$commodity = $this->facade->saveCommodity( $data, TRUE );
 		if ( $commodity ) {
-			$this->flashMessage( 'Commodity ' . $commodity->name . ' was successfully updated.' );
+			$this->flashMessage( 'Commodity ' . $commodity->getName() . ' was successfully saved.' );
 			$this->presenter->redirect( 'this', [ 'id' => NULL ] );
 		}
 	}
