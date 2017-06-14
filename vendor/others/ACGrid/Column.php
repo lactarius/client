@@ -11,7 +11,7 @@ class Column extends Object
 {
 
 	const TYPE_TEXT = 1;
-	const TYPE_SELECT = 2;
+	const TYPE_LIST = 2;
 
 	/** @var  string */
 	protected $name;
@@ -21,6 +21,9 @@ class Column extends Object
 
 	/** @var  int */
 	protected $type;
+
+	/** @var  string */
+	protected $order;
 
 
 	/**
@@ -94,5 +97,14 @@ class Column extends Object
 	{
 		$this->type = $type;
 		return $this;
+	}
+
+
+	/**
+	 * @return string
+	 */
+	public function getOrder(): string
+	{
+		return $this->order;
 	}
 }

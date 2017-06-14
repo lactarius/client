@@ -1,9 +1,3 @@
-{* ====== DEFINITION LAYERS ================== *}
-
-{foreach $stencils as $stencil}
-	{includeblock $stencil}
-{/foreach}
-
 {* ====== FLASH MESSAGES ===================== *}
 
 {define flashes}
@@ -22,16 +16,14 @@
 		<tr n:snippet="line-{$row->id}">
 			{foreach $columns as $column}
 				<td>
+					{var $colname = $column->name}
+					{var $colblock = "col-{$colname}"}
 					{if $row->id === $id}
 						{formContainer inner}
-							{input $column->name, class => 'form-control'}
+							{input $colname, class => 'form-control'}
 						{/formContainer}
 					{else}
-						{ifset #col-$column->name}
-							{include #"col-{$column->name}", row => $row}
-						{else}
-							{$row->{$column->name}}
-						{/ifset}
+						{include #$colblock, row => $row}
 					{/if}
 				</td>
 			{/foreach}
@@ -47,45 +39,67 @@
 	{/define}
 
 	{define edit-form-buttons}
-		{input save}
-		{input cancel}
+		{input save class => "btn btn-primary btn-xs"}
+		{input cancel class => "btn btn-default btn-xs"}
 	{/define}
 
 	{define line-buttons}
-		<a n:if="$editable" n:href="server! $cmd['EDIT'], $row->id" class="ajax">{$labels['edit']}</a>
-		<a n:if="$removable" n:href="server! $cmd['REMOVE'], $row->id" class="ajax">{$labels['remove']}</a>
+		<a n:if="$editable" n:href="server! $cmd['EDIT'], $row->id" class="ajax btn btn-primary btn-xs" role="button">
+			<span class="glyphicon glyphicon-pencil"></span> {$labels['edit']}
+		</a>
+		<a n:if="$removable" n:href="server! $cmd['REMOVE'], $row->id" class="ajax btn btn-default btn-xs"
+		                                                               role="button">
+			<span class="glyphicon glyphicon-minus"></span> {$labels['remove']}
+		</a>
 	{/define}
 
 	<div class="container-fluid">
-		{include flashes}
+		<div class="row">
+			<div class="col-sm-{$width}">
+				{include #flashes}
 
-		{form editForm}
-			<table class="table table-bordered table-striped">
-				{snippet interior}
-					<thead>
-					<tr>
-						{foreach $columns as $column}
-							<th>{$column->label}</th>
-						{/foreach}
-						<th n:if="$actions">
-							<a n:if="$adding" n:href="server! $cmd['ADD']" class="ajax">{$labels['new']}</a>
-						</th>
-					</tr>
-					</thead>
-					<tbody>
-					{snippet rows}
-						{foreach $data as $row}
-							{include #line, row => $row, columns => $columns, id => $id, cmd => $cmd,
-						editable => $editable, removable => $removable, actions => $actions, labels => $labels}
-						{/foreach}
-					{/snippet}
-					</tbody>
-					<tfoot>
-					<td colspan="{count($columns) + ($actions ? 1 : 0)}">ACGrid</td>
-					</tfoot>
-				{/snippet}
-			</table>
-		{/form}
+				{form editForm}
+					<table class="table table-bordered table-striped">
+						{snippet interior}
+							{var $colspan = count($columns) + ($actions ? 1 : 0)}
+
+							{* ====== DEFINITION LAYERS ================== *}
+
+							{foreach $stencils as $stencil}
+								{includeblock $stencil}
+							{/foreach}
+
+							<thead>
+							<tr n:if="$actitle">
+								<td colspan="{$colspan}"><h2>{$actitle}</h2></td>
+							</tr>
+							<tr>
+								{foreach $columns as $column}
+									<th>{$column->label}</th>
+								{/foreach}
+								<th n:if="$actions" class="col-sm-{$action_width}">
+									<a n:if="$adding" n:href="server! $cmd['ADD']" class="ajax btn btn-primary btn-xs"
+									                                               role="button">
+										<span class="glyphicon glyphicon-plus"></span> {$labels['new']}
+									</a>
+								</th>
+							</tr>
+							</thead>
+							<tbody>
+							{foreach $data as $row}
+								{include #line, row => $row, columns => $columns, id => $id, cmd => $cmd,
+								editable => $editable, removable => $removable, actions => $actions,
+								labels => $labels}
+							{/foreach}
+							</tbody>
+							<tfoot>
+							<td colspan="{$colspan}">ACGrid</td>
+							</tfoot>
+						{/snippet}
+					</table>
+				{/form}
+			</div>
+		</div>
 	</div>
 
 {/snippet}

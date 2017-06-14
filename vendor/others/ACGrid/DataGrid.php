@@ -4,6 +4,7 @@ namespace ACGrid;
 
 use Nette\Application\UI\Control;
 use Nette\Application\UI\Form;
+use Nette\Utils\Html;
 
 /**
  * @author Petr Blazicek 2017
@@ -16,6 +17,9 @@ class DataGrid extends Control
 		'EDIT'   => 2,
 		'REMOVE' => 3,
 	];
+
+	const ORDER_ASC = 'ASC';
+	const ORDER_DESC = 'DESC';
 
 	// labels
 
@@ -58,6 +62,15 @@ class DataGrid extends Control
 	/** @var  array */
 	protected $stencils = [];
 
+	/** @var  int */
+	protected $width = 12;
+
+	/** @var  int */
+	protected $actionWidth = 2;
+
+	/** @var  string */
+	protected $actitle;
+
 
 	// factories
 
@@ -90,27 +103,22 @@ class DataGrid extends Control
 	 * @param $name
 	 * @param null $label
 	 * @param int $type
-	 * @return $this
+	 * @return Column
 	 */
 	public function addColumn( $name, $label = NULL, $type = Column::TYPE_TEXT )
 	{
-		$this->columns[] = new Column( $name, $label, $type );
-		return $this;
+		return $this->columns[ $name ] = new Column( $name, $label, $type );
 	}
 
 
 	/**
-	 * Return column list [ name => type ]
+	 * Return column list
 	 *
 	 * @return array
 	 */
 	public function getColumnList()
 	{
-		foreach ( $this->columns as $column ) {
-			$cols[ $column->name ] = $column->type;
-		}
-
-		return $cols;
+		return array_keys( $this->columns );
 	}
 
 
@@ -261,6 +269,45 @@ class DataGrid extends Control
 
 
 	/**
+	 * Grid width
+	 *
+	 * @param $width
+	 * @return self (fluent interface)
+	 */
+	public function setWidth( $width )
+	{
+		$this->width = $width;
+		return $this;
+	}
+
+
+	/**
+	 * Action column width
+	 *
+	 * @param $width
+	 * @return self (fluent interface)
+	 */
+	public function setActionWidth( $width )
+	{
+		$this->actionWidth = $width;
+		return $this;
+	}
+
+
+	/**
+	 * Emergency title
+	 *
+	 * @param $title
+	 * @return self (fluent interface)
+	 */
+	public function setTitle( $title )
+	{
+		$this->actitle = $title;
+		return $this;
+	}
+
+
+	/**
 	 * Assemble javascript options
 	 *
 	 * @return string
@@ -315,6 +362,9 @@ class DataGrid extends Control
 		$template = $this->template;
 		$template->setFile( __DIR__ . '/dataGrid.latte' );
 		$template->stencils = $this->stencils;
+		$template->width = $this->width;
+		$template->action_width = $this->actionWidth;
+		$template->actitle = $this->actitle;
 		$template->cmd = self::CMD;
 		$template->labels = $this->labels;
 		$template->columns = $this->columns;

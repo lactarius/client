@@ -66,6 +66,8 @@ class ShopFacade extends BaseFacade
 		return $shop ? ShopService::restoreShop( $shop ) : NULL;
 	}
 
+	// Commodity
+
 
 	/**
 	 * Create / update Commodity
@@ -78,6 +80,11 @@ class ShopFacade extends BaseFacade
 	{
 		$commodity = $this->prepareEntity( Commodity::class, $data );
 		$commodity = ShopService::saveCommodity( $commodity, $data );
+		// parent Commodity set?
+		if ( $data[ 'parent' ] ) {
+			$parent = $this->commodityRepo->find( $data[ 'parent' ] );
+			$commodity->setParent( $parent );
+		}
 		$this->saveAll( $commodity, $write );
 
 		return $commodity;
@@ -132,5 +139,17 @@ class ShopFacade extends BaseFacade
 		$this->em->remove( $commodity );
 		if ( $write ) $this->flush();
 		return !$this->commodityRepo->find( $id );
+	}
+
+
+	/**
+	 * Get possible parents for edit form
+	 *
+	 * @param $id
+	 * @return array
+	 */
+	public function parentSelect( $id )
+	{
+		return $this->commodityRepo->findPairs( [ 'id !=' => $id ], 'name', [ 'name' => 'ASC' ], 'id' );
 	}
 }

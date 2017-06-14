@@ -34,13 +34,17 @@ class CommodityGrid extends DataGrid
 	protected function build()
 	{
 		$this->addStencil( __DIR__ . '/def.latte' );
+		$this->setWidth(6);
 
 		$this->addColumn( 'name', 'Name' );
 		$this->addColumn( 'info', 'Info' );
+		$this->addColumn( 'parent', 'Parent' );
 
 		$this->allowAdd()
 			->allowEdit()
 			->allowRemove();
+
+		$this->setTitle('Commodity');
 	}
 
 
@@ -50,14 +54,23 @@ class CommodityGrid extends DataGrid
 	}
 
 
+	/**
+	 * Edit definition form
+	 *
+	 * @return Container
+	 */
 	public function createEditContainer()
 	{
 		$container = new Container();
 
-		$container->addHidden( 'id' );
+		$container->addHidden('id');
+
 		$container->addText( 'name' )
 			->setAttribute( 'autofocus' );
+
 		$container->addText( 'info' );
+
+		$container->addSelect( 'parent', NULL, $this->facade->parentSelect( $this->id ) );
 
 		if ( $this->id ) $container->setDefaults( $this->facade->restoreCommodity( $this->id ) );
 
@@ -71,7 +84,7 @@ class CommodityGrid extends DataGrid
 			$data = $form->getValues( TRUE );
 			$commodity = $this->facade->saveCommodity( $data[ 'inner' ], TRUE );
 			if ( $commodity ) {
-				$this->flashMessage( 'Commodity <strong>' . $commodity->getName() . '</strong> was successfully saved.' );
+				$this->flashMessage( 'Commodity "' . $commodity->getName() . '" was successfully saved.' );
 			} else {
 				$this->flashMessage( 'Commodity was not saved.', 'error' );
 			}
@@ -79,7 +92,7 @@ class CommodityGrid extends DataGrid
 
 		if ( $this->presenter->isAjax() ) {
 			$this->redrawControl( 'flashes' );
-			$this->redrawControl( 'rows' );
+			$this->redrawControl( 'interior' );
 		} else {
 			$this->presenter->redirect( 'this', [ 'id' => NULL ] );
 		}
@@ -92,7 +105,8 @@ class CommodityGrid extends DataGrid
 		if ( $commodity ) {
 			$this->flashMessage( 'New dummy record successfully created. Edit it!' );
 			if ( $this->presenter->isAjax() ) {
-				$this->redrawControl( 'grid' );
+				$this->redrawControl( 'flashes' );
+				$this->redrawControl( 'interior' );
 			} else {
 				$this->redirect( 'this' );
 			}
@@ -106,7 +120,8 @@ class CommodityGrid extends DataGrid
 		if ( $res ) {
 			$this->flashMessage( 'Record removed.' );
 			if ( $this->presenter->isAjax() ) {
-				$this->redrawControl( 'grid' );
+				$this->redrawControl( 'flashes' );
+				$this->redrawControl( 'interior' );
 			} else {
 				$this->redirect( 'this' );
 			}
