@@ -4,7 +4,8 @@ namespace ACGrid;
 
 use Nette\Application\UI\Control;
 use Nette\Application\UI\Form;
-use Nette\Utils\Html;
+use Nette\Forms\Container;
+use Nette\Http\Session;
 
 /**
  * @author Petr Blazicek 2017
@@ -16,10 +17,16 @@ class DataGrid extends Control
 		'ADD'    => 1,
 		'EDIT'   => 2,
 		'REMOVE' => 3,
+		'ORDER'  => 4,
 	];
 
-	const ORDER_ASC = 'ASC';
-	const ORDER_DESC = 'DESC';
+	const SORT_OFF = 0;
+	const SORT_ASC = 1;
+	const SORT_DESC = 2;
+
+	/** @var Session */
+	protected $session;
+
 
 	// labels
 
@@ -37,8 +44,15 @@ class DataGrid extends Control
 	/** @var  array */
 	protected $filters = [];
 
-	/** @var  array */
-	protected $sorts = [];
+	/**
+	 * @var array
+	 */
+	public $sortingCols = [];
+
+	/**
+	 * @var array
+	 */
+	public $sortingDirs = [];
 
 	/** @var  mixed */
 	protected $key = 'id';
@@ -57,13 +71,13 @@ class DataGrid extends Control
 	/** @var  mixed */
 	protected $id;
 
+	/** @var array */
+	protected $dataSnippet = [];
+
 	// design
 
 	/** @var  array */
 	protected $stencils = [];
-
-	/** @var  int */
-	protected $width = 12;
 
 	/** @var  int */
 	protected $actionWidth = 2;
@@ -71,9 +85,23 @@ class DataGrid extends Control
 	/** @var  string */
 	protected $actitle;
 
+	/** @var  string */
+	protected $acfooter;
+
+
+	public function __construct( Session $session )
+	{
+		$this->session = $session;
+	}
 
 	// factories
 
+
+	/**
+	 * Edit form factory
+	 *
+	 * @return Form
+	 */
 	protected function createComponentEditForm()
 	{
 		$form = new Form();
@@ -90,9 +118,24 @@ class DataGrid extends Control
 	}
 
 
+	/**
+	 * Edit container prototype
+	 *
+	 * @return Container
+	 */
 	public function createEditContainer()
 	{
 	}
+
+
+	/**
+	 * @return Session
+	 */
+	public function getSession(): Session
+	{
+		return $this->session;
+	}
+
 
 	// content
 
@@ -107,7 +150,10 @@ class DataGrid extends Control
 	 */
 	public function addColumn( $name, $label = NULL, $type = Column::TYPE_TEXT )
 	{
-		return $this->columns[ $name ] = new Column( $name, $label, $type );
+		$column = new Column( $name, $label, $type );
+		$column->setGrid( $this );
+		$this->columns[ $name ] = $column;
+		return $column;
 	}
 
 
@@ -131,6 +177,38 @@ class DataGrid extends Control
 	public function setKey( $key )
 	{
 		$this->key = $key;
+		return $this;
+	}
+
+	// sorting
+
+
+	/**
+	 * Add new sortable column
+	 *
+	 * @param $col
+	 * @param $dir
+	 * @return self (fluent interface)
+	 */
+	public function addOrder( $col, $dir )
+	{
+		$this->sortingCols[] = $col;
+		$this->sortingDirs[ $col ] = $dir;
+		return $this;
+	}
+
+
+	/**
+	 * Sorting direction switch
+	 *
+	 * @param $col
+	 * @return self (fluent interface)
+	 */
+	public function switchOrder( $col )
+	{
+		$dir = $this->sortingDirs[ $col ];
+		$dir = $dir === self::SORT_DESC ? 0 : $dir++;
+		$this->sortingDirs[ $col ] = $dir;
 		return $this;
 	}
 
@@ -233,6 +311,11 @@ class DataGrid extends Control
 	}
 
 
+	/**
+	 * Remove record prototype
+	 *
+	 * @param $id
+	 */
 	public function removeRecord( $id )
 	{
 	}
@@ -240,8 +323,20 @@ class DataGrid extends Control
 
 	// data source
 
+	/**
+	 * Data source prototype
+	 *
+	 * @return array
+	 */
 	public function dataSource()
 	{
+		/** // when a snippet is prepared
+		if(count($this->dataSnippet)){
+			return $this->dataSnippet;
+		}
+		    // normal data
+		return $database->getData();
+		*/
 	}
 
 	// template / JS
@@ -308,6 +403,19 @@ class DataGrid extends Control
 
 
 	/**
+	 * Emergency footer
+	 *
+	 * @param $footer
+	 * @return self (fluent interface)
+	 */
+	public function setFooter( $footer )
+	{
+		$this->acfooter = $footer;
+		return $this;
+	}
+
+
+	/**
 	 * Assemble javascript options
 	 *
 	 * @return string
@@ -346,6 +454,10 @@ class DataGrid extends Control
 				break;
 			case self::CMD[ 'REMOVE' ]:
 				$this->removeRecord( $id );
+				break;
+			case self::CMD[ 'ORDER' ]:
+				$this->switchOrder( $id );
+				$this->redrawControl( 'header' );
 		}
 	}
 
@@ -362,18 +474,20 @@ class DataGrid extends Control
 		$template = $this->template;
 		$template->setFile( __DIR__ . '/dataGrid.latte' );
 		$template->stencils = $this->stencils;
-		$template->width = $this->width;
 		$template->action_width = $this->actionWidth;
 		$template->actitle = $this->actitle;
+		$template->acfooter = $this->acfooter;
 		$template->cmd = self::CMD;
 		$template->labels = $this->labels;
 		$template->columns = $this->columns;
 		$template->key = $this->key;
+		$template->sort_cols = $this->sortingCols;
+		$template->sort_dirs = $this->sortingDirs;
 		$template->editable = $this->editable;
 		$template->adding = $this->adding;
 		$template->removable = $this->removable;
 		$template->actions = $this->getActions();
-		$template->jsOpts = $this->getJsOptions();
+		$template->js_opts = $this->getJsOptions();
 		$template->data = $this->dataSource();
 		$template->id = $this->id;
 

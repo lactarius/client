@@ -5,7 +5,6 @@ namespace Client\Components\Grids;
 use ACGrid\DataGrid;
 use Client\Model\ShopFacade;
 use Nette\Application\UI\Form;
-use Nette\ComponentModel\IContainer;
 use Nette\Forms\Container;
 
 /**
@@ -18,15 +17,8 @@ class CommodityGrid extends DataGrid
 	private $facade;
 
 
-	/**
-	 * CommodityGrid constructor.
-	 * @param ShopFacade $facade
-	 * @param IContainer|NULL $parent
-	 * @param null $name
-	 */
-	public function __construct( ShopFacade $facade, IContainer $parent = NULL, $name = NULL )
+	public function __construct( ShopFacade $facade )
 	{
-		parent::__construct( $parent, $name );
 		$this->facade = $facade;
 	}
 
@@ -34,23 +26,20 @@ class CommodityGrid extends DataGrid
 	protected function build()
 	{
 		$this->addStencil( __DIR__ . '/def.latte' );
-		$this->setWidth(6);
+		$this->setWidth( 6 );
 
-		$this->addColumn( 'name', 'Name' );
-		$this->addColumn( 'info', 'Info' );
+		$this->addColumn( 'name', 'Name' )->order();
+		$this->addColumn( 'info', 'Info' )->order();
 		$this->addColumn( 'parent', 'Parent' );
 
 		$this->allowAdd()
 			->allowEdit()
 			->allowRemove();
 
-		$this->setTitle('Commodity');
-	}
+		$this->setTitle( 'Commodity' );
+		$this->setFooter( 'ACGrid 2017' );
 
-
-	public function dataSource()
-	{
-		return $this->facade->getCommodityRepo()->findBy( [] );
+		$this->setPers( 2222 );
 	}
 
 
@@ -63,7 +52,7 @@ class CommodityGrid extends DataGrid
 	{
 		$container = new Container();
 
-		$container->addHidden('id');
+		$container->addHidden( 'id' );
 
 		$container->addText( 'name' )
 			->setAttribute( 'autofocus' );
@@ -78,11 +67,14 @@ class CommodityGrid extends DataGrid
 	}
 
 
+	/**
+	 * @param Form $form
+	 */
 	public function saveRecord( Form $form )
 	{
 		if ( $form[ 'save' ]->isSubmittedBy() ) {
 			$data = $form->getValues( TRUE );
-			$commodity = $this->facade->saveCommodity( $data[ 'inner' ], TRUE );
+			$this->rows[] = $commodity = $this->facade->saveCommodity( $data[ 'inner' ], TRUE );
 			if ( $commodity ) {
 				$this->flashMessage( 'Commodity "' . $commodity->getName() . '" was successfully saved.' );
 			} else {
@@ -91,8 +83,9 @@ class CommodityGrid extends DataGrid
 		}
 
 		if ( $this->presenter->isAjax() ) {
+			$this->redrawControl( 'stencils' );
 			$this->redrawControl( 'flashes' );
-			$this->redrawControl( 'interior' );
+			$this->redrawControl( 'data' );
 		} else {
 			$this->presenter->redirect( 'this', [ 'id' => NULL ] );
 		}
@@ -105,8 +98,7 @@ class CommodityGrid extends DataGrid
 		if ( $commodity ) {
 			$this->flashMessage( 'New dummy record successfully created. Edit it!' );
 			if ( $this->presenter->isAjax() ) {
-				$this->redrawControl( 'flashes' );
-				$this->redrawControl( 'interior' );
+				$this->redrawControl( 'grid' );
 			} else {
 				$this->redirect( 'this' );
 			}
@@ -120,8 +112,7 @@ class CommodityGrid extends DataGrid
 		if ( $res ) {
 			$this->flashMessage( 'Record removed.' );
 			if ( $this->presenter->isAjax() ) {
-				$this->redrawControl( 'flashes' );
-				$this->redrawControl( 'interior' );
+				$this->redrawControl( 'grid' );
 			} else {
 				$this->redirect( 'this' );
 			}

@@ -362,12 +362,8 @@
   };
 })(jQuery);
 
-/**
 $(function () {
-  $('#lc_autocomplete').addressor();
-});
-*/
-
-$(document).ready(function () {
-  $('#lc_autocomplete').addressor();
+  if ($('#lc_autocomplete').length) {
+    $('#lc_autocomplete').addressor();
+  }
 });

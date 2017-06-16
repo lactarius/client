@@ -1,14 +1,52 @@
-{* ====== FLASH MESSAGES ===================== *}
-
-{define flashes}
-	<div n:snippet="flashes">
-		<p class="alert alert-{$flash->type === 'error' ? 'danger' : $flash->type}" n:foreach="$flashes as $flash">
-			{$flash->message}
-		</p>
-	</div>
-{/define}
-
 {snippet grid}
+
+	{* ====== DEFINITION LAYERS ================== *}
+
+	{snippet stencils}
+		{foreach $stencils as $stencil}
+			{includeblock $stencil}
+		{/foreach}
+	{/snippet}
+
+	{* ====== FLASH MESSAGES ===================== *}
+
+	{define flashes}
+		<div n:snippet="flashes">
+			<p class="alert alert-{$flash->type === 'error' ? 'danger' : $flash->type}" n:foreach="$flashes as $flash">
+				{$flash->message}
+			</p>
+		</div>
+	{/define}
+
+	{* ====== HEADER ============================= *}
+
+	{define header}
+		<tr n:snippet="header">
+			{foreach $columns as $column}
+				<th>
+					{var $colname = $column->name}
+					{var $collabel = $column->label ?: Strings::firstUpper($colname)}
+					{var $sort = array_search($colname, $sort_cols)}
+					{if $sort !== FALSE}
+						{var $dir = !empty($sort_dirs[$colname]) ? $sort_dirs[$colname] : FALSE}
+						<a n:href="server! $cmd['ORDER'], $colname" class="ajax">
+							{$collabel}
+							<span class="glyphicon {if $dir === 1}glyphicon-sort-by-alphabet
+													{elseif $dir === 2}glyphicon-sort-by-alphabet-alt{/if}"></span>
+						</a>
+					{else}
+						{$collabel}
+					{/if}
+				</th>
+			{/foreach}
+			<th n:if="$actions" class="col-sm-{$action_width}">
+				<a n:if="$adding" n:href="server! $cmd['ADD']"
+						class="ajax btn btn-primary btn-xs" role="button">
+					<span class="glyphicon glyphicon-plus"></span> {$labels['new']}
+				</a>
+			</th>
+		</tr>
+	{/define}
 
 	{* ====== LINE =============================== *}
 
@@ -23,7 +61,11 @@
 							{input $colname, class => 'form-control'}
 						{/formContainer}
 					{else}
-						{include #$colblock, row => $row}
+						{ifset #$colblock}
+							{include #$colblock, row => $row}
+						{else}
+							{$row->$colname}
+						{/ifset}
 					{/if}
 				</td>
 			{/foreach}
@@ -53,53 +95,35 @@
 		</a>
 	{/define}
 
-	<div class="container-fluid">
-		<div class="row">
-			<div class="col-sm-{$width}">
-				{include #flashes}
+	<div class="container">
+		{include #flashes}
 
-				{form editForm}
-					<table class="table table-bordered table-striped">
-						{snippet interior}
-							{var $colspan = count($columns) + ($actions ? 1 : 0)}
+		{form editForm}
+			<table class="table table-bordered table-striped">
+				{var $colspan = count($columns) + ($actions ? 1 : 0)}
 
-							{* ====== DEFINITION LAYERS ================== *}
-
-							{foreach $stencils as $stencil}
-								{includeblock $stencil}
-							{/foreach}
-
-							<thead>
-							<tr n:if="$actitle">
-								<td colspan="{$colspan}"><h2>{$actitle}</h2></td>
-							</tr>
-							<tr>
-								{foreach $columns as $column}
-									<th>{$column->label}</th>
-								{/foreach}
-								<th n:if="$actions" class="col-sm-{$action_width}">
-									<a n:if="$adding" n:href="server! $cmd['ADD']" class="ajax btn btn-primary btn-xs"
-									                                               role="button">
-										<span class="glyphicon glyphicon-plus"></span> {$labels['new']}
-									</a>
-								</th>
-							</tr>
-							</thead>
-							<tbody>
-							{foreach $data as $row}
-								{include #line, row => $row, columns => $columns, id => $id, cmd => $cmd,
-								editable => $editable, removable => $removable, actions => $actions,
-								labels => $labels}
-							{/foreach}
-							</tbody>
-							<tfoot>
-							<td colspan="{$colspan}">ACGrid</td>
-							</tfoot>
-						{/snippet}
-					</table>
-				{/form}
-			</div>
-		</div>
+				<thead>
+				<tr n:if="$actitle">
+					<td colspan="{$colspan}"><h2>{$actitle}</h2></td>
+				</tr>
+				{include #header, columns => $columns, sort_cols => $sort_cols, sort_dirs => $sort_dirs,
+							 cmd => $cmd, action => $actions, actions_width => $action_width, adding => $adding,
+							 labels => $labels}
+				</thead>
+				{snippet data}
+					<tbody>
+					{foreach $data as $row}
+						{include #line, row => $row, columns => $columns, id => $id, cmd => $cmd,
+									editable => $editable, removable => $removable, actions => $actions,
+									labels => $labels}
+					{/foreach}
+					</tbody>
+				{/snippet}
+				<tfoot>
+				<td colspan="{$colspan}">{$acfooter}</td>
+				</tfoot>
+			</table>
+		{/form}
 	</div>
 
 {/snippet}

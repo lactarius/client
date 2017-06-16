@@ -13,6 +13,9 @@ class Column extends Object
 	const TYPE_TEXT = 1;
 	const TYPE_LIST = 2;
 
+	/** @var  DataGrid */
+	protected $grid;
+
 	/** @var  string */
 	protected $name;
 
@@ -23,7 +26,7 @@ class Column extends Object
 	protected $type;
 
 	/** @var  string */
-	protected $order;
+	protected $sort;
 
 
 	/**
@@ -37,6 +40,26 @@ class Column extends Object
 		$this->name = $name;
 		$this->label = $label;
 		$this->type = $type;
+	}
+
+
+	/**
+	 * @return DataGrid
+	 */
+	public function getGrid(): DataGrid
+	{
+		return $this->grid;
+	}
+
+
+	/**
+	 * @param DataGrid $grid
+	 * @return self (fluent interface)
+	 */
+	public function setGrid( DataGrid $grid ): Column
+	{
+		$this->grid = $grid;
+		return $this;
 	}
 
 
@@ -105,6 +128,20 @@ class Column extends Object
 	 */
 	public function getOrder(): string
 	{
-		return $this->order;
+		return $this->sort;
+	}
+
+
+	/**
+	 * Add ordering capability to Column
+	 *
+	 * @param int $direction
+	 * @return self (fluent interface)
+	 */
+	public function order( $direction = DataGrid::SORT_OFF )
+	{
+		$this->sort = $direction;
+		$this->grid->addOrder( $this->name, $direction );
+		return $this;
 	}
 }
