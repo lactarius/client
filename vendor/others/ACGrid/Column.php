@@ -25,8 +25,8 @@ class Column extends Object
 	/** @var  int */
 	protected $type;
 
-	/** @var  string */
-	protected $sort;
+	/** @var int */
+	protected $sort = DataGrid::SORT_NOT_SORTABLE;
 
 
 	/**
@@ -124,11 +124,32 @@ class Column extends Object
 
 
 	/**
-	 * @return string
+	 * @return int
 	 */
-	public function getOrder(): string
+	private function getPersistOrder()
 	{
+		if ( isset( $this->grid->sortDirs[ $this->name ] ) ) $this->sort = $this->grid->sortDirs[ $this->name ];
 		return $this->sort;
+	}
+
+
+	/**
+	 * @param $direction
+	 * @return self (fluent interface)
+	 */
+	private function setPersistOrder( $direction )
+	{
+		$this->sort = $this->grid->sortDirs[ $this->name ] = $direction;
+		return $this;
+	}
+
+
+	/**
+	 * @return int
+	 */
+	public function getOrder()
+	{
+		return $this->getPersistOrder();
 	}
 
 
@@ -140,8 +161,10 @@ class Column extends Object
 	 */
 	public function order( $direction = DataGrid::SORT_OFF )
 	{
-		$this->sort = $direction;
-		$this->grid->addOrder( $this->name, $direction );
+		$this->getPersistOrder();
+		if ( !is_int( $this->sort ) ) {
+			$this->setPersistOrder( $direction );
+		}
 		return $this;
 	}
 }

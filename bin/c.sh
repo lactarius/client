@@ -1,3 +1,3 @@
 #!/bin/bash
-rm -rf src/log/*.log src/log/*.html src/temp/btfj.dat src/temp/cache/ tests/tmp/btfj.dat tests/tmp/*.txt tests/tmp/cache/* tests/tmp/*.html tests/tmp/*.log
+rm -rf src/log/{*.log,*.html} src/temp/{btfj.dat,cache/*,*.txt} tests/tmp/{*.txt,*.log,*.html,cache/*}
 echo -e "\e[32mTemp & logs cleaned\e[39m"

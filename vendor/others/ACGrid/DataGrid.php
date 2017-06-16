@@ -14,45 +14,53 @@ class DataGrid extends Control
 {
 
 	const CMD = [
-		'ADD'    => 1,
-		'EDIT'   => 2,
-		'REMOVE' => 3,
-		'ORDER'  => 4,
+		'ADD'        => 1,
+		'EDIT'       => 2,
+		'REMOVE'     => 3,
+		'ORDER'      => 4,
+		'RESET_SORT' => 5,
 	];
 
+	const SESSION_SECTION = 'acgrid';
+
+	const SORT_NOT_SORTABLE = NULL;
 	const SORT_OFF = 0;
 	const SORT_ASC = 1;
 	const SORT_DESC = 2;
 
+	const DIR = [ 1 => 'ASC', 2 => 'DESC' ];
+
+	protected $facade;
+
 	/** @var Session */
 	protected $session;
+
+	/** @var SessionSection */
+	protected $section;
 
 
 	// labels
 
 	protected $labels = [
-		'new'    => 'New',
-		'edit'   => 'Edit',
-		'remove' => 'Remove',
+		'new'        => 'New',
+		'edit'       => 'Edit',
+		'remove'     => 'Remove',
+		'reset_sort' => 'Reset',
 	];
 
-	// structure
+	// data structure
 
 	/** @var  Column|array */
 	protected $columns = [];
 
+	/** @persistent */
+	public $sortCols = [];
+
+	/** @persistent */
+	public $sortDirs = [];
+
 	/** @var  array */
 	protected $filters = [];
-
-	/**
-	 * @var array
-	 */
-	public $sortingCols = [];
-
-	/**
-	 * @var array
-	 */
-	public $sortingDirs = [];
 
 	/** @var  mixed */
 	protected $key = 'id';
@@ -89,9 +97,16 @@ class DataGrid extends Control
 	protected $acfooter;
 
 
+	/**
+	 * DataGrid constructor.
+	 * @param Session $session
+	 */
 	public function __construct( Session $session )
 	{
 		$this->session = $session;
+		$this->section = $session->getSection( self::SESSION_SECTION );
+
+		$this->build();
 	}
 
 	// factories
@@ -137,7 +152,15 @@ class DataGrid extends Control
 	}
 
 
-	// content
+	/**
+	 * @return SessionSection
+	 */
+	public function getSection(): SessionSection
+	{
+		return $this->section;
+	}
+
+	// data
 
 
 	/**
@@ -180,35 +203,57 @@ class DataGrid extends Control
 		return $this;
 	}
 
+
 	// sorting
 
 
 	/**
-	 * Add new sortable column
+	 * Order of sorting
 	 *
 	 * @param $col
 	 * @param $dir
 	 * @return self (fluent interface)
 	 */
-	public function addOrder( $col, $dir )
+	public function setSort( $col, $dir )
 	{
-		$this->sortingCols[] = $col;
-		$this->sortingDirs[ $col ] = $dir;
+		$order = array_search( $col, $this->sortCols );
+		if ( $dir && !is_int( $order ) ) $this->sortCols[] = $col;
+		if ( $dir == self::SORT_OFF && is_int( $order ) ) {
+			unset( $this->sortCols[ $order ] );
+			$this->sortCols = array_values( $this->sortCols );
+		}
+
+		//file_put_contents( TEMP_DIR . '/sort.txt', var_export( $this->sortCols, TRUE ) );
+
 		return $this;
 	}
 
 
 	/**
-	 * Sorting direction switch
+	 * Switch sort direction
 	 *
 	 * @param $col
 	 * @return self (fluent interface)
 	 */
-	public function switchOrder( $col )
+	public function switchSort( $col )
 	{
-		$dir = $this->sortingDirs[ $col ];
-		$dir = $dir === self::SORT_DESC ? 0 : $dir++;
-		$this->sortingDirs[ $col ] = $dir;
+		$dir = $this->sortDirs[ $col ];
+		$dir = $dir == self::SORT_DESC ? self::SORT_OFF : $dir + 1;
+		$this->sortDirs[ $col ] = $dir;
+		$this->setSort( $col, $dir );
+		return $this;
+	}
+
+
+	/**
+	 * Reset sorting
+	 *
+	 * @return self (fluent interface)
+	 */
+	public function resetSort()
+	{
+		$this->sortCols = [];
+		$this->sortDirs = array_fill_keys( array_keys( $this->sortDirs ), self::SORT_OFF );
 		return $this;
 	}
 
@@ -323,6 +368,7 @@ class DataGrid extends Control
 
 	// data source
 
+
 	/**
 	 * Data source prototype
 	 *
@@ -330,13 +376,6 @@ class DataGrid extends Control
 	 */
 	public function dataSource()
 	{
-		/** // when a snippet is prepared
-		if(count($this->dataSnippet)){
-			return $this->dataSnippet;
-		}
-		    // normal data
-		return $database->getData();
-		*/
 	}
 
 	// template / JS
@@ -359,19 +398,6 @@ class DataGrid extends Control
 	public function addStencil( $path )
 	{
 		$this->stencils[] = $path;
-		return $this;
-	}
-
-
-	/**
-	 * Grid width
-	 *
-	 * @param $width
-	 * @return self (fluent interface)
-	 */
-	public function setWidth( $width )
-	{
-		$this->width = $width;
 		return $this;
 	}
 
@@ -456,8 +482,12 @@ class DataGrid extends Control
 				$this->removeRecord( $id );
 				break;
 			case self::CMD[ 'ORDER' ]:
-				$this->switchOrder( $id );
-				$this->redrawControl( 'header' );
+				$this->switchSort( $id );
+				$this->redrawControl( 'grid' );
+				break;
+			case self::CMD[ 'RESET_SORT' ]:
+				$this->resetSort();
+				$this->redrawControl( 'grid' );
 		}
 	}
 
@@ -469,8 +499,6 @@ class DataGrid extends Control
 	 */
 	public function render()
 	{
-		$this->build();
-
 		$template = $this->template;
 		$template->setFile( __DIR__ . '/dataGrid.latte' );
 		$template->stencils = $this->stencils;
@@ -481,8 +509,8 @@ class DataGrid extends Control
 		$template->labels = $this->labels;
 		$template->columns = $this->columns;
 		$template->key = $this->key;
-		$template->sort_cols = $this->sortingCols;
-		$template->sort_dirs = $this->sortingDirs;
+		$template->sort_dirs = $this->sortDirs;
+		$template->sort_cols = $this->sortCols;
 		$template->editable = $this->editable;
 		$template->adding = $this->adding;
 		$template->removable = $this->removable;
