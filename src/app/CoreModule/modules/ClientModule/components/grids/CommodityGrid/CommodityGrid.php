@@ -6,6 +6,7 @@ use ACGrid\DataGrid;
 use Client\Model\ShopFacade;
 use Nette\Application\UI\Form;
 use Nette\Forms\Container;
+use Nette\Forms\Controls\SubmitButton;
 use Nette\Http\Session;
 
 /**
@@ -30,7 +31,7 @@ class CommodityGrid extends DataGrid
 		$this->addColumn( 'info', 'Info' )->order();
 		$this->addColumn( 'parent', 'Parent' );
 
-		$this->allowAdd()->allowEdit()->allowRemove();
+		$this->allowFilter()->allowAdd()->allowEdit()->allowRemove();
 
 		$this->setTitle( 'Commodity' );
 		$this->setFooter( 'ACGrid 2017' );
@@ -52,6 +53,13 @@ class CommodityGrid extends DataGrid
 		// normal data
 		$qb = $this->facade->getCommodityRepo()->createQueryBuilder( 'c' );
 
+		// filters
+		foreach ( $this->filters as $col => $filter ) {
+			if ( $filter ) {
+				$qb->andWhere( "c.$col LIKE :$col" )
+					->setParameter( "$col", "$filter%" );
+			}
+		}
 
 		// sort
 		foreach ( $this->sortCols as $sortCol ) {
@@ -59,6 +67,25 @@ class CommodityGrid extends DataGrid
 		}
 
 		return $qb->getQuery()->getResult();
+	}
+
+
+	/**
+	 * Filter definition form
+	 *
+	 * @return Container
+	 */
+	public function createFilterContainer()
+	{
+		$container = new Container();
+
+		$container->addText( 'name' )
+			->setAttribute( 'autofocus' );
+		$container->addText( 'info' );
+
+		if ( count( $this->filters ) ) $container->setDefaults( $this->filters );
+
+		return $container;
 	}
 
 
@@ -71,26 +98,49 @@ class CommodityGrid extends DataGrid
 	{
 		$container = new Container();
 
-		$container->addHidden( 'id' );
-
-		$container->addText( 'name' )
+		$container->addHidden( 'id' )
 			->setAttribute( 'autofocus' );
-
+		$container->addText( 'name' );
 		$container->addText( 'info' );
+		$container->addSelect( 'parent' );
 
-		$container->addSelect( 'parent', NULL, $this->facade->parentSelect( $this->id ) );
-
-		if ( $this->id ) $container->setDefaults( $this->facade->restoreCommodity( $this->id ) );
+		if ( $this->id ) {
+			$container[ 'parent' ]->setItems( $this->facade->parentSelect( $this->id ) );
+			$container->setDefaults( $this->facade->restoreCommodity( $this->id ) );
+		}
 
 		return $container;
 	}
 
 
 	/**
-	 * @param Form $form
+	 * @param SubmitButton $button
 	 */
-	public function saveRecord( Form $form )
+	public function setFilters( SubmitButton $button )
 	{
+		$form = $button->getForm();
+		if ( $form[ 'set_filters' ]->isSubmittedBy() ) {
+			$data = $form->getValues( TRUE );
+			$this->filters = $data[ 'filter' ];
+			$this->flashMessage( 'Filters set.' );
+		} else {
+			$this->filters = [];
+			$this->flashMessage( 'Filters reset.' );
+		}
+		if ( $this->presenter->isAjax() ) {
+			$this->redrawControl( 'grid' );
+		} else {
+			$this->presenter->redirect( 'this' );
+		}
+	}
+
+
+	/**
+	 * @param SubmitButton $button
+	 */
+	public function saveRecord( SubmitButton $button )
+	{
+		$form = $button->getForm();
 		if ( $form[ 'save' ]->isSubmittedBy() ) {
 			$data = $form->getValues( TRUE );
 			$this->dataSnippet[] = $commodity = $this->facade->saveCommodity( $data[ 'inner' ], TRUE );
@@ -102,9 +152,7 @@ class CommodityGrid extends DataGrid
 		}
 
 		if ( $this->presenter->isAjax() ) {
-			$this->redrawControl( 'stencils' );
-			$this->redrawControl( 'flashes' );
-			$this->redrawControl( 'data' );
+			$this->redrawControl( 'grid' );
 		} else {
 			$this->presenter->redirect( 'this', [ 'id' => NULL ] );
 		}

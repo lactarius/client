@@ -5,7 +5,7 @@ namespace ACGrid;
 use Nette\Application\UI\Control;
 use Nette\Application\UI\Form;
 use Nette\Forms\Container;
-use Nette\Http\Session;
+use Nette\Forms\Controls\SubmitButton;
 
 /**
  * @author Petr Blazicek 2017
@@ -32,20 +32,16 @@ class DataGrid extends Control
 
 	protected $facade;
 
-	/** @var Session */
-	protected $session;
-
-	/** @var SessionSection */
-	protected $section;
-
 
 	// labels
 
 	protected $labels = [
-		'new'        => 'New',
-		'edit'       => 'Edit',
-		'remove'     => 'Remove',
-		'reset_sort' => 'Reset',
+		'new'           => 'New',
+		'edit'          => 'Edit',
+		'remove'        => 'Remove',
+		'reset_sort'    => 'Reset',
+		'set_filters'   => 'Filter',
+		'reset_filters' => 'Reset',
 	];
 
 	// data structure
@@ -53,14 +49,17 @@ class DataGrid extends Control
 	/** @var  Column|array */
 	protected $columns = [];
 
+	/** @var  bool */
+	protected $filterable = FALSE;
+
+	/** @persistent */
+	public $filters = [];
+
 	/** @persistent */
 	public $sortCols = [];
 
 	/** @persistent */
 	public $sortDirs = [];
-
-	/** @var  array */
-	protected $filters = [];
 
 	/** @var  mixed */
 	protected $key = 'id';
@@ -99,13 +98,9 @@ class DataGrid extends Control
 
 	/**
 	 * DataGrid constructor.
-	 * @param Session $session
 	 */
-	public function __construct( Session $session )
+	public function __construct()
 	{
-		$this->session = $session;
-		$this->section = $session->getSection( self::SESSION_SECTION );
-
 		$this->build();
 	}
 
@@ -123,13 +118,30 @@ class DataGrid extends Control
 
 		$form->getElementPrototype()->class( 'ajax' );
 
+		$form[ 'filter' ] = $this->createFilterContainer();
+
 		$form[ 'inner' ] = $this->createEditContainer();
 
-		$form->addSubmit( 'save', 'Save' );
-		$form->addSubmit( 'cancel', 'Cancel' );
-		$form->onSuccess[] = [ $this, 'saveRecord' ];
+		$form->addSubmit( 'set_filters' )
+			->onClick[] = [ $this, 'setFilters' ];
+		$form->addSubmit( 'reset_filters' )
+			->onClick[] = [ $this, 'setFilters' ];
+		$form->addSubmit( 'save', 'Save' )
+			->onClick[] = [ $this, 'saveRecord' ];
+		$form->addSubmit( 'cancel', 'Cancel' )
+			->onClick[] = [ $this, 'saveRecord' ];
 
 		return $form;
+	}
+
+
+	/**
+	 * Filter container prototype
+	 *
+	 * @return Container
+	 */
+	public function createFilterContainer()
+	{
 	}
 
 
@@ -142,23 +154,6 @@ class DataGrid extends Control
 	{
 	}
 
-
-	/**
-	 * @return Session
-	 */
-	public function getSession(): Session
-	{
-		return $this->session;
-	}
-
-
-	/**
-	 * @return SessionSection
-	 */
-	public function getSection(): SessionSection
-	{
-		return $this->section;
-	}
 
 	// data
 
@@ -204,6 +199,14 @@ class DataGrid extends Control
 	}
 
 
+	// filters
+
+	public function allowFilter()
+	{
+		$this->filterable = TRUE;
+		return $this;
+	}
+
 	// sorting
 
 
@@ -222,8 +225,6 @@ class DataGrid extends Control
 			unset( $this->sortCols[ $order ] );
 			$this->sortCols = array_values( $this->sortCols );
 		}
-
-		//file_put_contents( TEMP_DIR . '/sort.txt', var_export( $this->sortCols, TRUE ) );
 
 		return $this;
 	}
@@ -351,7 +352,12 @@ class DataGrid extends Control
 	}
 
 
-	public function saveRecord( Form $form )
+	public function setFilters( SubmitButton $button )
+	{
+	}
+
+
+	public function saveRecord( SubmitButton $button )
 	{
 	}
 
@@ -509,6 +515,8 @@ class DataGrid extends Control
 		$template->labels = $this->labels;
 		$template->columns = $this->columns;
 		$template->key = $this->key;
+		$template->filterable = $this->filterable;
+		$template->filters = $this->filters;
 		$template->sort_dirs = $this->sortDirs;
 		$template->sort_cols = $this->sortCols;
 		$template->editable = $this->editable;
