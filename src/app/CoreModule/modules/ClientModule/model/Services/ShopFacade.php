@@ -148,7 +148,7 @@ class ShopFacade extends BaseFacade
 	 * @param $id
 	 * @return array
 	 */
-	public function parentSelect( $id )
+	public function parentSelect( $id = NULL )
 	{
 		return $this->commodityRepo->findPairs( [ 'id !=' => $id ], 'name', [ 'name' => 'ASC' ], 'id' );
 	}

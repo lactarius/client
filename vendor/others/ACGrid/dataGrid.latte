@@ -21,29 +21,6 @@
 	{* ====== FILTER ============================= *}
 
 	{define filter}
-		<tr n:snippet="filter">
-			{foreach $columns as $column}
-				{var $colname = $column->name}
-				{var $colblock = "filter-col-{$colname}"}
-				<td>
-					{ifset #$colblock}
-						{formContainer filter}
-							{include #$colblock}
-						{/formContainer}
-					{/ifset}
-				</td>
-			{/foreach}
-			{if $actions}
-				<td>
-					<button n:if="count($filters)" n:name="resetFilter" class="btn btn-default btn-xs">
-						<span class="glyphicon glyphicon-share-alt"></span> {$labels['reset_filter']}
-					</button>
-					<button n:name="setFilter" class="btn btn-primary btn-xs">
-						<span class="glyphicon glyphicon-filter"></span> {$labels['set_filter']}
-					</button>
-				</td>
-			{/if}
-		</tr>
 	{/define}
 
 	{* ====== HEADER ============================= *}
@@ -55,6 +32,8 @@
 
 	{define line}
 	{/define}
+
+	{* ====== BUTTONS============================= *}
 
 	{define edit-form-buttons}
 	{/define}
@@ -71,21 +50,17 @@
 
 	{* ====== GRID =============================== *}
 
-	<div class="container">
-		{include #flashes}
+	{form editForm}
+		<div class="container">
+			{include #flashes}
 
-		<table class="table table-bordered table-striped">
-			{var $colspan = count($columns) + ($actions ? 1 : 0)}
+			<table class="table table-bordered table-striped">
+				{var $colspan = count($columns) + ($actions ? 1 : 0)}
 
-			{form filterForm}
 				<thead>
 				<tr n:if="$actitle">
 					<td colspan="{$colspan}"><h2>{$actitle}</h2></td>
 				</tr>
-				{if $filterable}
-					{include #filter, columns => $columns, filters => $filters, actions => $actions,
-							labels => $labels}
-				{/if}
 				<tr n:snippet="header">
 					{foreach $columns as $column}
 						<th>
@@ -121,8 +96,6 @@
 					</th>
 				</tr>
 				</thead>
-			{/form}
-			{form editForm}
 				{snippet data}
 					<tbody>
 					{foreach $data as $row}
@@ -146,16 +119,12 @@
 							{/foreach}
 							<td n:if="$actions">
 								{if $row->id === $id}
-									{input save_record}
-									{input cancel_record}
-									{*
-									<button n:name="save_record" class="ajax btn btn-primary btn-xs">
+									<button n:name="saveRecord" class="ajax btn btn-primary btn-xs">
 										<span class="glyphicon glyphicon-ok"></span> {$labels['save_record']}
 									</button>
-									<button n:name="cancel_record" class="ajax btn btn-default btn-xs">
+									<button n:name="cancelRecord" class="ajax btn btn-default btn-xs">
 										<span class="glyphicon glyphicon-remove"></span> {$labels['cancel_record']}
 									</button>
-									*}
 								{else}
 									{include #line-buttons, row => $row, cmd => $cmd, editable => $editable,
 									removable => $removable, label => $labels}
@@ -165,11 +134,11 @@
 					{/foreach}
 					</tbody>
 				{/snippet}
-			{/form}
-			<tfoot>
-			<td colspan="{$colspan}">{$acfooter}</td>
-			</tfoot>
-		</table>
-	</div>
+				<tfoot>
+				<td colspan="{$colspan}">{$acfooter}</td>
+				</tfoot>
+			</table>
+		</div>
+	{/form}
 
 {/snippet}

@@ -111,26 +111,6 @@ class DataGrid extends Control
 
 
 	/**
-	 * Filter form factory
-	 *
-	 * @return Form
-	 */
-	protected function createComponentFilterForm()
-	{
-		$form = new Form();
-		$form->getElementPrototype()->class( 'ajax' );
-
-		$form[ 'filter' ] = $this->createFilterContainer();
-
-		$form->addSubmit( 'resetFilter' );
-		$form->addSubmit( 'setFilter' );
-		$form->onSuccess[] = [ $this, 'setFilters' ];
-
-		return $form;
-	}
-
-
-	/**
 	 * Edit form factory
 	 *
 	 * @return Form
@@ -142,21 +122,11 @@ class DataGrid extends Control
 
 		$form[ 'edit' ] = $this->createEditContainer();
 
-		$form->addSubmit( 'save_record','Save' );
-		$form->addSubmit( 'cancel_record','Cancel' );
+		$form->addSubmit( 'saveRecord','Save' );
+		$form->addSubmit( 'cancelRecord','Cancel' );
 		$form->onSuccess[] = [ $this, 'saveRecord' ];
 
 		return $form;
-	}
-
-
-	/**
-	 * Filter container prototype
-	 *
-	 * @return Container
-	 */
-	public function createFilterContainer()
-	{
 	}
 
 
