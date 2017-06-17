@@ -6,7 +6,6 @@ use ACGrid\DataGrid;
 use Client\Model\ShopFacade;
 use Nette\Application\UI\Form;
 use Nette\Forms\Container;
-use Nette\Forms\Controls\SubmitButton;
 use Nette\Http\Session;
 
 /**
@@ -46,25 +45,17 @@ class CommodityGrid extends DataGrid
 	public function dataSource()
 	{
 		// snippet prepared?
-		if ( count( $this->dataSnippet ) ) {
-			return $this->dataSnippet;
-		}
-
+		if ( count( $this->dataSnippet ) ) return $this->dataSnippet;
 		// normal data
 		$qb = $this->facade->getCommodityRepo()->createQueryBuilder( 'c' );
-
 		// filters
 		foreach ( $this->filters as $col => $filter ) {
-			if ( $filter ) {
-				$qb->andWhere( "c.$col LIKE :$col" )
-					->setParameter( "$col", "$filter%" );
-			}
+			if ( $filter ) $qb->andWhere( "c.$col LIKE :$col" )
+				->setParameter( "$col", "$filter%" );
 		}
-
 		// sort
-		foreach ( $this->sortCols as $sortCol ) {
+		foreach ( $this->sortCols as $sortCol )
 			$qb->addOrderBy( "c.$sortCol", self::DIR[ $this->sortDirs[ $sortCol ] ] );
-		}
 
 		return $qb->getQuery()->getResult();
 	}
@@ -98,9 +89,9 @@ class CommodityGrid extends DataGrid
 	{
 		$container = new Container();
 
-		$container->addHidden( 'id' )
+		$container->addHidden( 'id' );
+		$container->addText( 'name' )
 			->setAttribute( 'autofocus' );
-		$container->addText( 'name' );
 		$container->addText( 'info' );
 		$container->addSelect( 'parent' );
 
@@ -114,19 +105,22 @@ class CommodityGrid extends DataGrid
 
 
 	/**
-	 * @param SubmitButton $button
+	 * @param Form $form
+	 * @param array $values
 	 */
-	public function setFilters( SubmitButton $button )
+	public function setFilters( Form $form, array $values )
 	{
-		$form = $button->getForm();
-		if ( $form[ 'set_filters' ]->isSubmittedBy() ) {
-			$data = $form->getValues( TRUE );
-			$this->filters = $data[ 'filter' ];
-			$this->flashMessage( 'Filters set.' );
+		file_put_contents( TEMP_DIR . '/sort.txt', $form['setFilter']->isSubmittedBy()?'Rubyyy!!':'Hooovno..');
+		if ( $form[ 'setFilter' ]->isSubmittedBy() ) {
+
+			$this->filters = $values[ 'filter' ];
+			$this->flashMessage( 'Filter set.' );
 		} else {
+
 			$this->filters = [];
 			$this->flashMessage( 'Filters reset.' );
 		}
+
 		if ( $this->presenter->isAjax() ) {
 			$this->redrawControl( 'grid' );
 		} else {
@@ -136,14 +130,14 @@ class CommodityGrid extends DataGrid
 
 
 	/**
-	 * @param SubmitButton $button
+	 * @param Form $form
+	 * @param array $values
 	 */
-	public function saveRecord( SubmitButton $button )
+	public function saveRecord( Form $form, array $values )
 	{
-		$form = $button->getForm();
-		if ( $form[ 'save' ]->isSubmittedBy() ) {
-			$data = $form->getValues( TRUE );
-			$this->dataSnippet[] = $commodity = $this->facade->saveCommodity( $data[ 'inner' ], TRUE );
+		if ( $form[ 'save_record' ]->isSubmittedBy() ) {
+
+			$this->dataSnippet[] = $commodity = $this->facade->saveCommodity( $values[ 'edit' ], TRUE );
 			if ( $commodity ) {
 				$this->flashMessage( 'Commodity "' . $commodity->getName() . '" was successfully saved.' );
 			} else {
@@ -152,6 +146,9 @@ class CommodityGrid extends DataGrid
 		}
 
 		if ( $this->presenter->isAjax() ) {
+
+			//$this->redrawControl( 'stencils' );
+			//$this->redrawControl( 'flashes' );
 			$this->redrawControl( 'grid' );
 		} else {
 			$this->presenter->redirect( 'this', [ 'id' => NULL ] );
@@ -159,8 +156,12 @@ class CommodityGrid extends DataGrid
 	}
 
 
+	/**
+	 * Add new dummy record
+	 */
 	public function addRecord()
 	{
+		$this->filters = [];  // disable filtering
 		$commodity = $this->facade->newCommodity();
 		if ( $commodity ) {
 			$this->flashMessage( 'New dummy record successfully created. Edit it!' );

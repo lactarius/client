@@ -21,6 +21,29 @@
 	{* ====== FILTER ============================= *}
 
 	{define filter}
+		<tr n:snippet="filter">
+			{foreach $columns as $column}
+				{var $colname = $column->name}
+				{var $colblock = "filter-col-{$colname}"}
+				<td>
+					{ifset #$colblock}
+						{formContainer filter}
+							{include #$colblock}
+						{/formContainer}
+					{/ifset}
+				</td>
+			{/foreach}
+			{if $actions}
+				<td>
+					<button n:if="count($filters)" n:name="resetFilter" class="btn btn-default btn-xs">
+						<span class="glyphicon glyphicon-share-alt"></span> {$labels['reset_filter']}
+					</button>
+					<button n:name="setFilter" class="btn btn-primary btn-xs">
+						<span class="glyphicon glyphicon-filter"></span> {$labels['set_filter']}
+					</button>
+				</td>
+			{/if}
+		</tr>
 	{/define}
 
 	{* ====== HEADER ============================= *}
@@ -31,38 +54,9 @@
 	{* ====== LINE =============================== *}
 
 	{define line}
-		<tr n:snippet="line-{$row->id}">
-			{foreach $columns as $column}
-				<td>
-					{var $colname = $column->name}
-					{var $colblock = "col-{$colname}"}
-					{if $row->id === $id}
-						{formContainer inner}
-							{input $colname, class => 'form-control'}
-						{/formContainer}
-					{else}
-						{ifset #$colblock}
-							{include #$colblock, row => $row}
-						{else}
-							{$row->$colname}
-						{/ifset}
-					{/if}
-				</td>
-			{/foreach}
-			<td n:if="$actions">
-				{if $row->id === $id}
-					{include #edit-form-buttons, labels => $labels}
-				{else}
-					{include #line-buttons, row => $row, cmd => $cmd, editable => $editable, removable => $removable,
-					label => $labels}
-				{/if}
-			</td>
-		</tr>
 	{/define}
 
 	{define edit-form-buttons}
-		{input save class => "btn btn-primary btn-xs"}
-		{input cancel class => "btn btn-default btn-xs"}
 	{/define}
 
 	{define line-buttons}
@@ -75,40 +69,23 @@
 		</a>
 	{/define}
 
+	{* ====== GRID =============================== *}
+
 	<div class="container">
 		{include #flashes}
 
-		{form editForm}
-			<table class="table table-bordered table-striped">
-				{var $colspan = count($columns) + ($actions ? 1 : 0)}
+		<table class="table table-bordered table-striped">
+			{var $colspan = count($columns) + ($actions ? 1 : 0)}
 
+			{form filterForm}
 				<thead>
 				<tr n:if="$actitle">
 					<td colspan="{$colspan}"><h2>{$actitle}</h2></td>
 				</tr>
-				<tr n:if="$filterable" n:snippet="filter">
-					{foreach $columns as $column}
-						{var $colname = $column->name}
-						{var $colblock = "filter-col-{$colname}"}
-						<td>
-							{ifset #$colblock}
-								{formContainer filter}
-									{include #$colblock}
-								{/formContainer}
-							{/ifset}
-						</td>
-					{/foreach}
-					{if $actions}
-						<td>
-							<button n:if="count($filters)" n:name="reset_filters" class="btn btn-default btn-xs">
-								<span class="glyphicon glyphicon-share-alt"></span> {$labels['reset_filters']}
-							</button>
-							<button n:name="set_filters" class="btn btn-primary btn-xs">
-								<span class="glyphicon glyphicon-filter"></span> {$labels['set_filters']}
-							</button>
-						</td>
-					{/if}
-				</tr>
+				{if $filterable}
+					{include #filter, columns => $columns, filters => $filters, actions => $actions,
+							labels => $labels}
+				{/if}
 				<tr n:snippet="header">
 					{foreach $columns as $column}
 						<th>
@@ -144,20 +121,55 @@
 					</th>
 				</tr>
 				</thead>
+			{/form}
+			{form editForm}
 				{snippet data}
 					<tbody>
 					{foreach $data as $row}
-						{include #line, row => $row, columns => $columns, id => $id, cmd => $cmd,
-									editable => $editable, removable => $removable, actions => $actions,
-									labels => $labels}
+						<tr n:snippet="line-{$row->id}">
+							{foreach $columns as $column}
+								<td>
+									{var $colname = $column->name}
+									{var $colblock = "col-{$colname}"}
+									{if $row->id === $id}
+										{formContainer edit}
+											{input $colname, class => 'form-control'}
+										{/formContainer}
+									{else}
+										{ifset #$colblock}
+											{include #$colblock, row => $row}
+										{else}
+											{$row->$colname}
+										{/ifset}
+									{/if}
+								</td>
+							{/foreach}
+							<td n:if="$actions">
+								{if $row->id === $id}
+									{input save_record}
+									{input cancel_record}
+									{*
+									<button n:name="save_record" class="ajax btn btn-primary btn-xs">
+										<span class="glyphicon glyphicon-ok"></span> {$labels['save_record']}
+									</button>
+									<button n:name="cancel_record" class="ajax btn btn-default btn-xs">
+										<span class="glyphicon glyphicon-remove"></span> {$labels['cancel_record']}
+									</button>
+									*}
+								{else}
+									{include #line-buttons, row => $row, cmd => $cmd, editable => $editable,
+									removable => $removable, label => $labels}
+								{/if}
+							</td>
+						</tr>
 					{/foreach}
 					</tbody>
 				{/snippet}
-				<tfoot>
-				<td colspan="{$colspan}">{$acfooter}</td>
-				</tfoot>
-			</table>
-		{/form}
+			{/form}
+			<tfoot>
+			<td colspan="{$colspan}">{$acfooter}</td>
+			</tfoot>
+		</table>
 	</div>
 
 {/snippet}

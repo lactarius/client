@@ -38,10 +38,12 @@ class DataGrid extends Control
 	protected $labels = [
 		'new'           => 'New',
 		'edit'          => 'Edit',
+		'save_record'   => 'Save',
+		'cancel_record' => 'Cancel',
 		'remove'        => 'Remove',
 		'reset_sort'    => 'Reset',
-		'set_filters'   => 'Filter',
-		'reset_filters' => 'Reset',
+		'set_filter'    => 'Filter',
+		'reset_filter'  => 'Reset',
 	];
 
 	// data structure
@@ -104,7 +106,28 @@ class DataGrid extends Control
 		$this->build();
 	}
 
+
 	// factories
+
+
+	/**
+	 * Filter form factory
+	 *
+	 * @return Form
+	 */
+	protected function createComponentFilterForm()
+	{
+		$form = new Form();
+		$form->getElementPrototype()->class( 'ajax' );
+
+		$form[ 'filter' ] = $this->createFilterContainer();
+
+		$form->addSubmit( 'resetFilter' );
+		$form->addSubmit( 'setFilter' );
+		$form->onSuccess[] = [ $this, 'setFilters' ];
+
+		return $form;
+	}
 
 
 	/**
@@ -115,21 +138,13 @@ class DataGrid extends Control
 	protected function createComponentEditForm()
 	{
 		$form = new Form();
-
 		$form->getElementPrototype()->class( 'ajax' );
 
-		$form[ 'filter' ] = $this->createFilterContainer();
+		$form[ 'edit' ] = $this->createEditContainer();
 
-		$form[ 'inner' ] = $this->createEditContainer();
-
-		$form->addSubmit( 'set_filters' )
-			->onClick[] = [ $this, 'setFilters' ];
-		$form->addSubmit( 'reset_filters' )
-			->onClick[] = [ $this, 'setFilters' ];
-		$form->addSubmit( 'save', 'Save' )
-			->onClick[] = [ $this, 'saveRecord' ];
-		$form->addSubmit( 'cancel', 'Cancel' )
-			->onClick[] = [ $this, 'saveRecord' ];
+		$form->addSubmit( 'save_record','Save' );
+		$form->addSubmit( 'cancel_record','Cancel' );
+		$form->onSuccess[] = [ $this, 'saveRecord' ];
 
 		return $form;
 	}
@@ -352,15 +367,16 @@ class DataGrid extends Control
 	}
 
 
-	public function setFilters( SubmitButton $button )
+	public function setFilters( Form $form, array $values )
 	{
 	}
 
 
-	public function saveRecord( SubmitButton $button )
+	/**
+	public function saveRecord( Form $form, array $values )
 	{
 	}
-
+	*/
 
 	/**
 	 * Remove record prototype
