@@ -4,8 +4,6 @@ namespace ACGrid;
 
 use Nette\Application\UI\Control;
 use Nette\Application\UI\Form;
-use Nette\Forms\Container;
-use Nette\Forms\Controls\SubmitButton;
 
 /**
  * @author Petr Blazicek 2017
@@ -30,6 +28,7 @@ class DataGrid extends Control
 
 	const DIR = [ 1 => 'ASC', 2 => 'DESC' ];
 
+	/** @var mixed */
 	protected $facade;
 
 
@@ -50,9 +49,6 @@ class DataGrid extends Control
 
 	/** @var  Column|array */
 	protected $columns = [];
-
-	/** @var  bool */
-	protected $filterable = FALSE;
 
 	/** @persistent */
 	public $filters = [];
@@ -120,14 +116,23 @@ class DataGrid extends Control
 		$form = new Form();
 		$form->getElementPrototype()->class( 'ajax' );
 
-		$form[ 'filter' ] = $this->createFilterContainer();
+		if ( $this->isFiltering() ) {
+			$form[ 'filter' ] = new FilterForm( $this );
+		}
 
-		$form[ 'edit' ] = $this->createEditContainer();
+		if ( $this->isEditing() ) {
+			$form[ 'edit' ] = new EditForm( $this );
+		}
 
-		$form->addSubmit( 'setFilter', 'Filter' );
-		$form->addSubmit( 'resetFilter', 'Reset' );
-		$form->addSubmit( 'saveRecord', 'Save' );
-		$form->addSubmit( 'cancelRecord', 'Cancel' );
+		if ( $this->isFiltering() ) {
+			$form->addSubmit( 'setFilter', 'Filter' );
+			$form->addSubmit( 'resetFilter', 'Reset' );
+		}
+
+		if ( $this->isEditing() ) {
+			$form->addSubmit( 'saveRecord', 'Save' );
+			$form->addSubmit( 'cancelRecord', 'Cancel' );
+		}
 
 		$form->onSubmit[] = [ $this, 'processForm' ];
 
@@ -136,24 +141,34 @@ class DataGrid extends Control
 
 
 	/**
-	 * Filter container prototype
+	 * Filter & Edit forms hack
 	 *
-	 * @return Container
+	 * @param Form $form
 	 */
-	public function createFilterContainer()
+	public function processForm( Form $form )
 	{
+		$button = $form->isSubmitted();
+		if ( $button ) {
+			$submit = $button->getName();
+			$data = $form->getValues( TRUE );
+			//file_put_contents( TEMP_DIR . '/sort.txt', var_export( $data, TRUE ) );
+
+			if ( $submit == 'setFilter' || $submit == 'resetFilter' ) $this->setFilter( $submit, $data[ 'filter' ] );
+			if ( $submit == 'saveRecord' || $submit == 'cancelRecord' ) $this->saveRecord( $submit, $data[ 'edit' ] );
+		}
 	}
+
+
+	// getters & setters
 
 
 	/**
-	 * Edit container prototype
-	 *
-	 * @return Container
+	 * @return mixed
 	 */
-	public function createEditContainer()
+	public function getFacade()
 	{
+		return $this->facade;
 	}
-
 
 	// data
 
@@ -176,17 +191,6 @@ class DataGrid extends Control
 
 
 	/**
-	 * Return column list
-	 *
-	 * @return array
-	 */
-	public function getColumnList()
-	{
-		return array_keys( $this->columns );
-	}
-
-
-	/**
 	 * Set primary key
 	 *
 	 * @param mixed $key
@@ -198,14 +202,6 @@ class DataGrid extends Control
 		return $this;
 	}
 
-
-	// filters
-
-	public function allowFilter()
-	{
-		$this->filterable = TRUE;
-		return $this;
-	}
 
 	// sorting
 
@@ -258,19 +254,8 @@ class DataGrid extends Control
 		return $this;
 	}
 
+
 	// editing
-
-
-	/**
-	 * Make grid editable
-	 *
-	 * @return self (fluent interface)
-	 */
-	public function allowEdit()
-	{
-		$this->editable = TRUE;
-		return $this;
-	}
 
 
 	/**
@@ -278,7 +263,7 @@ class DataGrid extends Control
 	 *
 	 * @return self (fluent interface)
 	 */
-	public function allowAdd()
+	public function allowAdding()
 	{
 		$this->adding = TRUE;
 		return $this;
@@ -290,7 +275,7 @@ class DataGrid extends Control
 	 *
 	 * @return self (fluent interface)
 	 */
-	public function allowRemove()
+	public function allowRemoving()
 	{
 		$this->removable = TRUE;
 		return $this;
@@ -298,13 +283,68 @@ class DataGrid extends Control
 
 
 	/**
-	 * Any action?
-	 *
 	 * @return bool
 	 */
-	public function getActions()
+	public function isSorting()
 	{
-		return $this->adding || $this->editable || $this->removable;
+		return count( $this->sortDirs ) > 0;
+	}
+
+
+	/**
+	 * @return bool
+	 */
+	public function isFiltering()
+	{
+		return class_exists( 'ACGrid\FilterForm' );
+	}
+
+
+	/**
+	 * @return bool
+	 */
+	public function isAdding()
+	{
+		return $this->adding;
+	}
+
+
+	/**
+	 * @return bool
+	 */
+	public function isRemoving()
+	{
+		return $this->removable;
+	}
+
+
+	/**
+	 * @return bool
+	 */
+	public function isEditing()
+	{
+		return class_exists( 'ACGrid\EditForm' );
+	}
+
+
+	/**
+	 * @return bool
+	 */
+	public function hasActions()
+	{
+		return $this->isSorting() || $this->isFiltering() || $this->isAdding()
+			|| $this->isRemoving() || $this->isEditing();
+	}
+
+
+	/**
+	 * Editing ID getter
+	 *
+	 * @return mixed
+	 */
+	public function getId()
+	{
+		return $this->id;
 	}
 
 
@@ -319,6 +359,8 @@ class DataGrid extends Control
 		$this->id = $id;
 		return $this;
 	}
+
+	// design
 
 
 	/**
@@ -344,44 +386,6 @@ class DataGrid extends Control
 	{
 		$this->labels[ $name ] = $label;
 		return $this;
-	}
-
-
-	public function addRecord()
-	{
-	}
-
-
-	public function setFilter( $button, $data )
-	{
-	}
-
-
-	public function saveRecord( $button, $data )
-	{
-	}
-
-
-	/**
-	 * Remove record prototype
-	 *
-	 * @param $id
-	 */
-	public function removeRecord( $id )
-	{
-	}
-
-
-	// data source
-
-
-	/**
-	 * Data source prototype
-	 *
-	 * @return array
-	 */
-	public function dataSource()
-	{
 	}
 
 	// template / JS
@@ -427,7 +431,7 @@ class DataGrid extends Control
 	 * @param $title
 	 * @return self (fluent interface)
 	 */
-	public function setTitle( $title )
+	public function setTitle( $title = '<em>ACGrid</em>' )
 	{
 		$this->actitle = $title;
 		return $this;
@@ -440,30 +444,11 @@ class DataGrid extends Control
 	 * @param $footer
 	 * @return self (fluent interface)
 	 */
-	public function setFooter( $footer )
+	public function setFooter( $footer = '<strong>ACGrid 2017</strong>' )
 	{
 		$this->acfooter = $footer;
 		return $this;
 	}
-
-
-	/**
-	 * Assemble javascript options
-	 *
-	 * @return string
-	 */
-	public function getJsOptions()
-	{
-		$opts = [
-			'server'   => $this->link( 'server!' ),
-			'editable' => $this->editable,
-			'adding'   => $this->adding,
-			'cols'     => $this->getColumnList(),
-		];
-
-		return json_encode( $opts );
-	}
-
 
 	// signal receivers
 
@@ -507,23 +492,24 @@ class DataGrid extends Control
 	{
 		$template = $this->template;
 		$template->setFile( __DIR__ . '/dataGrid.latte' );
+
 		$template->stencils = $this->stencils;
-		$template->action_width = $this->actionWidth;
+		$template->actionWidth = $this->actionWidth;
 		$template->actitle = $this->actitle;
 		$template->acfooter = $this->acfooter;
 		$template->cmd = self::CMD;
 		$template->labels = $this->labels;
 		$template->columns = $this->columns;
 		$template->key = $this->key;
-		$template->filterable = $this->filterable;
+		$template->isSorting = $this->isSorting();
+		$template->isFiltering = $this->isFiltering();
+		$template->isAdding = $this->isAdding();
+		$template->isRemoving = $this->isRemoving();
+		$template->isEditing = $this->isEditing();
+		$template->hasActions = $this->hasActions();
+		$template->sortDirs = $this->sortDirs;
+		$template->sortCols = $this->sortCols;
 		$template->filters = $this->filters;
-		$template->sort_dirs = $this->sortDirs;
-		$template->sort_cols = $this->sortCols;
-		$template->editable = $this->editable;
-		$template->adding = $this->adding;
-		$template->removable = $this->removable;
-		$template->actions = $this->getActions();
-		$template->js_opts = $this->getJsOptions();
 		$template->data = $this->dataSource();
 		$template->id = $this->id;
 

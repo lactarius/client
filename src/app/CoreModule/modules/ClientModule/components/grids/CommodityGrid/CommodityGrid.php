@@ -6,7 +6,6 @@ use ACGrid\DataGrid;
 use Client\Model\ShopFacade;
 use Nette\Application\UI\Form;
 use Nette\Forms\Container;
-use Nette\Forms\Controls\SubmitButton;
 use Nette\Http\Session;
 
 /**
@@ -18,23 +17,24 @@ class CommodityGrid extends DataGrid
 	public function __construct( ShopFacade $facade, Session $session )
 	{
 		parent::__construct( $session );
-		/** @var ShopFacade $facade */
+		/* @var ShopFacade $facade */
 		$this->facade = $facade;
 	}
 
 
+	/**
+	 * Grid builder
+	 */
 	protected function build()
 	{
 		$this->addStencil( __DIR__ . '/def.latte' );
 
-		$this->addColumn( 'name', 'Name' )->order();
-		$this->addColumn( 'info', 'Info' )->order();
+		$this->addColumn( 'name')->order();
+		$this->addColumn( 'info')->order();
 		$this->addColumn( 'parent', 'Parent' );
 
-		$this->allowFilter()->allowAdd()->allowEdit()->allowRemove();
-
-		$this->setTitle( 'Commodity' );
-		$this->setFooter( 'ACGrid 2017' );
+		$this->allowRemoving()->allowAdding();
+		$this->setTitle()->setFooter();
 	}
 
 
@@ -63,23 +63,11 @@ class CommodityGrid extends DataGrid
 
 
 	/**
-	 * Filter definition form
+	 * Filter set / reset
 	 *
-	 * @return Container
+	 * @param $submit
+	 * @param $data
 	 */
-	public function createFilterContainer()
-	{
-		$container = new Container();
-
-		$container->addText( 'name' );
-		$container->addText( 'info' );
-
-		$container->setDefaults( $this->filters );
-
-		return $container;
-	}
-
-
 	public function setFilter( $submit, $data )
 	{
 		if ( $submit == 'setFilter' ) {
@@ -88,7 +76,8 @@ class CommodityGrid extends DataGrid
 			$this->flashMessage( 'Filter set.' );
 		} else {
 
-			$this->filters = array_fill_keys( array_keys( $this->filters ), '' );
+			//$this->filters = array_fill_keys( array_keys( $this->filters ), '' );
+			$this->filters = [];
 			$this->flashMessage( 'Filter reset.' );
 		}
 
@@ -97,28 +86,11 @@ class CommodityGrid extends DataGrid
 
 
 	/**
-	 * Edit definition form
+	 * Inline edit form process
 	 *
-	 * @return Container
+	 * @param $submit
+	 * @param $data
 	 */
-	public function createEditContainer()
-	{
-		$container = new Container();
-
-		$container->addHidden( 'id' );
-		$container->addText( 'name' )
-			->setAttribute( 'autofocus' );
-		$container->addText( 'info' );
-		$container->addSelect( 'parent', NULL, $this->facade->parentSelect() );
-
-		if ( $this->id ) {
-			$container->setDefaults( $this->facade->restoreCommodity( $this->id ) );
-		}
-
-		return $container;
-	}
-
-
 	public function saveRecord( $submit, $data )
 	{
 		if ( $submit == 'saveRecord' ) {
@@ -142,20 +114,6 @@ class CommodityGrid extends DataGrid
 	}
 
 
-	public function processForm( Form $form )
-	{
-		$button = $form->isSubmitted();
-		if ( $button ) {
-			$submit = $button->getName();
-			$data = $form->getValues( TRUE );
-			//file_put_contents( TEMP_DIR . '/sort.txt', var_export( $data, TRUE ) );
-
-			if ( $submit == 'setFilter' || $submit == 'resetFilter' ) $this->setFilter( $submit, $data[ 'filter' ] );
-			if ( $submit == 'saveRecord' || $submit == 'cancelRecord' ) $this->saveRecord( $submit, $data[ 'edit' ] );
-		}
-	}
-
-
 	/**
 	 * Add new dummy record
 	 */
@@ -175,6 +133,11 @@ class CommodityGrid extends DataGrid
 	}
 
 
+	/**
+	 * Remove record
+	 *
+	 * @param $id
+	 */
 	public function removeRecord( $id )
 	{
 		$res = $this->facade->removeCommodity( $id, TRUE );

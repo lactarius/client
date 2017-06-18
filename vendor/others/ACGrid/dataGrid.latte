@@ -12,9 +12,11 @@
 
 	{define flashes}
 		<div n:snippet="flashes">
-			<p class="alert alert-{$flash->type === 'error' ? 'danger' : $flash->type}" n:foreach="$flashes as $flash">
-				{$flash->message}
-			</p>
+			<div n:foreach="$flashes as $flash"
+					class="alert alert-{$flash->type === 'error' ? 'danger' : $flash->type} alert-dismissable">
+				<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+				<strong>{$flash->message}</strong>
+			</div>
 		</div>
 	{/define}
 
@@ -22,14 +24,24 @@
 
 	{define ac-title}
 		<tr n:if="$actitle">
-			<td colspan="{$colspan}"><h2>{$actitle}</h2></td>
+			<td colspan="{$colspan}"><h2>{$actitle|noescape}</h2></td>
+		</tr>
+	{/define}
+
+	{* ====== EMERGENCY FOOTER ============== *}
+
+	{define ac-footer}
+		<tr n:if="$acfooter">
+			<td colspan="{$colspan}">
+				{$acfooter|noescape}
+			</td>
 		</tr>
 	{/define}
 
 	{* ====== FILTER ============================= *}
 
 	{define filter}
-		<tr n:if="$filterable" n:snippet="filter">
+		<tr n:if="$isFiltering" n:snippet="filter">
 			{foreach $columns as $column}
 				{var $colname = $column->name}
 				{var $colblock = "filter-col-$colname"}
@@ -41,14 +53,14 @@
 					{/ifset}
 				</td>
 			{/foreach}
-			{include #filter-buttons, actions => $actions, filtered => count($filters), labels => $labels}
+			{include #filter-buttons filtered => count($filters), $hasActions, $labels}
 		</tr>
 	{/define}
 
 	{* ====== FILTER BUTTONS====================== *}
 
 	{define filter-buttons}
-		<td n:if="$actions">
+		<td n:if="$hasActions">
 			<button n:if="$filtered" n:name="resetFilter" class="ajax btn btn-default btn-xs">
 				<span class="glyphicon glyphicon-share-alt"></span> {$labels['reset_filter']}
 			</button>
@@ -65,30 +77,29 @@
 			{foreach $columns as $column}
 				<th>
 					{var $colname = $column->name}
-					{var $collabel = $column->label ?: Strings::firstUpper($colname)}
-					{if !isset($dirs[$colname])}
-						{$collabel}
-					{else}
+					{var $collabel = $column->label ?: Nette\Utils\Strings::firstUpper($colname)}
+					{if isset($sortDirs[$colname])}
 						<a n:href="server! $cmd['ORDER'], $colname" class="ajax">
 							{$collabel}
-							{var $index = array_search($colname, $sort_cols)}
+							{var $index = array_search($colname, $sortCols)}
 							{if is_int($index)}
 								{$index + 1}
 							{/if}
-							<span class="glyphicon {if $sort_dirs[$colname] == 1}glyphicon-arrow-up
-										{elseif $sort_dirs[$colname] == 2}glyphicon-arrow-down{/if}">
-									</span>
+							<span class="glyphicon {if $sortDirs[$colname] == 1}glyphicon-arrow-up
+										{elseif $sortDirs[$colname] == 2}glyphicon-arrow-down{/if}"></span>
 						</a>
+					{else}
+						{$collabel}
 					{/if}
 				</th>
 			{/foreach}
-			<th n:if="$actions" class="col-sm-{$action_width}">
-				<a n:if="count($sort_cols)" n:href="server! $cmd['RESET_SORT']"
+			<th n:if="$hasActions" class="col-sm-{$actionWidth}">
+				<a n:if="count($sortCols)" n:href="server! $cmd['RESET_SORT']"
 						data-toggle="tooltip" data-placement="top" title="Reset all sorting"
 						class="ajax btn btn-default btn-xs" role="button">
 					<span class="glyphicon glyphicon-share-alt"></span> {$labels['reset_sort']}
 				</a>
-				<a n:if="$adding" n:href="server! $cmd['ADD']"
+				<a n:if="$isAdding" n:href="server! $cmd['ADD']"
 						data-toggle="tooltip" data-placement="top" title="Create new dummy record"
 						class="ajax btn btn-primary btn-xs" role="button">
 					<span class="glyphicon glyphicon-plus"></span> {$labels['new']}
@@ -100,6 +111,45 @@
 	{* ====== LINE =============================== *}
 
 	{define line}
+		<tr n:snippet="line-{$row->id}">
+			{foreach $columns as $column}
+				<td>
+					{var $colname = $column->name}
+					{var $colblock = "col-{$colname}"}
+					{if $row->id === $id}
+						{formContainer edit}
+							{input $colname, class => 'form-control'}
+						{/formContainer}
+					{else}
+						{ifset #$colblock}
+							{include #$colblock, row => $row}
+						{else}
+							{$row->$colname}
+						{/ifset}
+					{/if}
+				</td>
+			{/foreach}
+			<td n:if="$hasActions">
+				{if $row->id === $id}
+					<button n:name="saveRecord" class="ajax btn btn-primary btn-xs">
+						<span class="glyphicon glyphicon-ok"></span> {$labels['save_record']}
+					</button>
+					<button n:name="cancelRecord" class="ajax btn btn-default btn-xs">
+						<span class="glyphicon glyphicon-remove"></span> {$labels['cancel_record']}
+					</button>
+				{else}
+					<a n:if="$isEditing" n:href="server! $cmd['EDIT'], $row->id"
+							class="ajax btn btn-primary btn-xs" role="button">
+						<span class="glyphicon glyphicon-pencil"></span> {$labels['edit']}
+					</a>
+					<a n:if="$isRemoving" n:href="server! $cmd['REMOVE'], $row->id"
+							class="ajax btn btn-default btn-xs"
+							role="button">
+						<span class="glyphicon glyphicon-minus"></span> {$labels['remove']}
+					</a>
+				{/if}
+			</td>
+		</tr>
 	{/define}
 
 	{* ====== BUTTONS============================= *}
@@ -117,62 +167,22 @@
 			{include #flashes}
 
 			<table class="table table-bordered table-striped">
-				{var $colspan = count($columns) + ($actions ? 1 : 0)}
+				{var $colspan = count($columns) + ($hasActions ? 1 : 0)}
 
 				<thead>
-				{include #ac-title, actitle => $actitle, colspan => $colspan}
-				{include #filter, filterable => $filterable, columns => $columns, filters => $filters,
-						actions => $actions, labels => $labels}
-				{include #sorting, columns => $columns, dirs => $sort_dirs, cols => $sort_cols, cmd => $cmd,
-						width => $action_width, actions => $actions, adding => $adding, labels => $labels}
+				{include #ac-title $actitle, $colspan}
+				{include #filter $columns, $filters, $isFiltering, $hasActions, $labels}
+				{include #sorting $columns, $sortDirs, $sortCols, $cmd, $isAdding, $hasActions, $actionWidth, $labels}
 				</thead>
 				{snippet data}
 					<tbody>
 					{foreach $data as $row}
-						<tr n:snippet="line-{$row->id}">
-							{foreach $columns as $column}
-								<td>
-									{var $colname = $column->name}
-									{var $colblock = "col-{$colname}"}
-									{if $row->id === $id}
-										{formContainer edit}
-											{input $colname, class => 'form-control'}
-										{/formContainer}
-									{else}
-										{ifset #$colblock}
-											{include #$colblock, row => $row}
-										{else}
-											{$row->$colname}
-										{/ifset}
-									{/if}
-								</td>
-							{/foreach}
-							<td n:if="$actions">
-								{if $row->id === $id}
-									<button n:name="saveRecord" class="ajax btn btn-primary btn-xs">
-										<span class="glyphicon glyphicon-ok"></span> {$labels['save_record']}
-									</button>
-									<button n:name="cancelRecord" class="ajax btn btn-default btn-xs">
-										<span class="glyphicon glyphicon-remove"></span> {$labels['cancel_record']}
-									</button>
-								{else}
-									<a n:if="$editable" n:href="server! $cmd['EDIT'], $row->id"
-											class="ajax btn btn-primary btn-xs" role="button">
-										<span class="glyphicon glyphicon-pencil"></span> {$labels['edit']}
-									</a>
-									<a n:if="$removable" n:href="server! $cmd['REMOVE'], $row->id"
-											class="ajax btn btn-default btn-xs"
-											role="button">
-										<span class="glyphicon glyphicon-minus"></span> {$labels['remove']}
-									</a>
-								{/if}
-							</td>
-						</tr>
+						{include #line $row, $columns, $id, $isRemoving, $isEditing, $hasActions, $cmd, $labels}
 					{/foreach}
 					</tbody>
 				{/snippet}
 				<tfoot>
-				<td colspan="{$colspan}">{$acfooter}</td>
+				{include #ac-footer $acfooter, $colspan}
 				</tfoot>
 			</table>
 		</div>
