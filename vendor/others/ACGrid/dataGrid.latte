@@ -18,14 +18,83 @@
 		</div>
 	{/define}
 
+	{* ====== EMERGENCY TITLE ==================== *}
+
+	{define ac-title}
+		<tr n:if="$actitle">
+			<td colspan="{$colspan}"><h2>{$actitle}</h2></td>
+		</tr>
+	{/define}
+
 	{* ====== FILTER ============================= *}
 
 	{define filter}
+		<tr n:if="$filterable" n:snippet="filter">
+			{foreach $columns as $column}
+				{var $colname = $column->name}
+				{var $colblock = "filter-col-$colname"}
+				<td>
+					{ifset #$colblock}
+						{formContainer filter}
+							{include #$colblock}
+						{/formContainer}
+					{/ifset}
+				</td>
+			{/foreach}
+			{include #filter-buttons, actions => $actions, filtered => count($filters), labels => $labels}
+		</tr>
 	{/define}
 
-	{* ====== HEADER ============================= *}
+	{* ====== FILTER BUTTONS====================== *}
 
-	{define header}
+	{define filter-buttons}
+		<td n:if="$actions">
+			<button n:if="$filtered" n:name="resetFilter" class="ajax btn btn-default btn-xs">
+				<span class="glyphicon glyphicon-share-alt"></span> {$labels['reset_filter']}
+			</button>
+			<button n:name="setFilter" class="ajax btn btn-primary btn-xs">
+				<span class="glyphicon glyphicon-filter"></span> {$labels['set_filter']}
+			</button>
+		</td>
+	{/define}
+
+	{* ====== SORTING ============================ *}
+
+	{define sorting}
+		<tr n:snippet="sorting">
+			{foreach $columns as $column}
+				<th>
+					{var $colname = $column->name}
+					{var $collabel = $column->label ?: Strings::firstUpper($colname)}
+					{if !isset($dirs[$colname])}
+						{$collabel}
+					{else}
+						<a n:href="server! $cmd['ORDER'], $colname" class="ajax">
+							{$collabel}
+							{var $index = array_search($colname, $sort_cols)}
+							{if is_int($index)}
+								{$index + 1}
+							{/if}
+							<span class="glyphicon {if $sort_dirs[$colname] == 1}glyphicon-arrow-up
+										{elseif $sort_dirs[$colname] == 2}glyphicon-arrow-down{/if}">
+									</span>
+						</a>
+					{/if}
+				</th>
+			{/foreach}
+			<th n:if="$actions" class="col-sm-{$action_width}">
+				<a n:if="count($sort_cols)" n:href="server! $cmd['RESET_SORT']"
+						data-toggle="tooltip" data-placement="top" title="Reset all sorting"
+						class="ajax btn btn-default btn-xs" role="button">
+					<span class="glyphicon glyphicon-share-alt"></span> {$labels['reset_sort']}
+				</a>
+				<a n:if="$adding" n:href="server! $cmd['ADD']"
+						data-toggle="tooltip" data-placement="top" title="Create new dummy record"
+						class="ajax btn btn-primary btn-xs" role="button">
+					<span class="glyphicon glyphicon-plus"></span> {$labels['new']}
+				</a>
+			</th>
+		</tr>
 	{/define}
 
 	{* ====== LINE =============================== *}
@@ -38,14 +107,7 @@
 	{define edit-form-buttons}
 	{/define}
 
-	{define line-buttons}
-		<a n:if="$editable" n:href="server! $cmd['EDIT'], $row->id" class="ajax btn btn-primary btn-xs" role="button">
-			<span class="glyphicon glyphicon-pencil"></span> {$labels['edit']}
-		</a>
-		<a n:if="$removable" n:href="server! $cmd['REMOVE'], $row->id" class="ajax btn btn-default btn-xs"
-		                                                               role="button">
-			<span class="glyphicon glyphicon-minus"></span> {$labels['remove']}
-		</a>
+	{define inline-buttons}
 	{/define}
 
 	{* ====== GRID =============================== *}
@@ -58,43 +120,11 @@
 				{var $colspan = count($columns) + ($actions ? 1 : 0)}
 
 				<thead>
-				<tr n:if="$actitle">
-					<td colspan="{$colspan}"><h2>{$actitle}</h2></td>
-				</tr>
-				<tr n:snippet="header">
-					{foreach $columns as $column}
-						<th>
-							{var $colname = $column->name}
-							{var $collabel = $column->label ?: Strings::firstUpper($colname)}
-							{if !isset($sort_dirs[$colname])}
-								{$collabel}
-							{else}
-								<a n:href="server! $cmd['ORDER'], $colname" class="ajax">
-									{$collabel}
-									{var $index = array_search($colname, $sort_cols)}
-									{if is_int($index)}
-										{$index + 1}
-									{/if}
-									<span class="glyphicon {if $sort_dirs[$colname] == 1}glyphicon-arrow-up
-										{elseif $sort_dirs[$colname] == 2}glyphicon-arrow-down{/if}">
-									</span>
-								</a>
-							{/if}
-						</th>
-					{/foreach}
-					<th n:if="$actions" class="col-sm-{$action_width}">
-						<a n:if="count($sort_cols)" n:href="server! $cmd['RESET_SORT']"
-								data-toggle="tooltip" data-placement="top" title="Reset all sorting"
-								class="ajax btn btn-default btn-xs" role="button">
-							<span class="glyphicon glyphicon-share-alt"></span> {$labels['reset_sort']}
-						</a>
-						<a n:if="$adding" n:href="server! $cmd['ADD']"
-								data-toggle="tooltip" data-placement="top" title="Create new dummy record"
-								class="ajax btn btn-primary btn-xs" role="button">
-							<span class="glyphicon glyphicon-plus"></span> {$labels['new']}
-						</a>
-					</th>
-				</tr>
+				{include #ac-title, actitle => $actitle, colspan => $colspan}
+				{include #filter, filterable => $filterable, columns => $columns, filters => $filters,
+						actions => $actions, labels => $labels}
+				{include #sorting, columns => $columns, dirs => $sort_dirs, cols => $sort_cols, cmd => $cmd,
+						width => $action_width, actions => $actions, adding => $adding, labels => $labels}
 				</thead>
 				{snippet data}
 					<tbody>
@@ -126,8 +156,15 @@
 										<span class="glyphicon glyphicon-remove"></span> {$labels['cancel_record']}
 									</button>
 								{else}
-									{include #line-buttons, row => $row, cmd => $cmd, editable => $editable,
-									removable => $removable, label => $labels}
+									<a n:if="$editable" n:href="server! $cmd['EDIT'], $row->id"
+											class="ajax btn btn-primary btn-xs" role="button">
+										<span class="glyphicon glyphicon-pencil"></span> {$labels['edit']}
+									</a>
+									<a n:if="$removable" n:href="server! $cmd['REMOVE'], $row->id"
+											class="ajax btn btn-default btn-xs"
+											role="button">
+										<span class="glyphicon glyphicon-minus"></span> {$labels['remove']}
+									</a>
 								{/if}
 							</td>
 						</tr>

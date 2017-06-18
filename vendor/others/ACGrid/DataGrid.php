@@ -120,13 +120,28 @@ class DataGrid extends Control
 		$form = new Form();
 		$form->getElementPrototype()->class( 'ajax' );
 
+		$form[ 'filter' ] = $this->createFilterContainer();
+
 		$form[ 'edit' ] = $this->createEditContainer();
 
-		$form->addSubmit( 'saveRecord','Save' );
-		$form->addSubmit( 'cancelRecord','Cancel' );
-		$form->onSuccess[] = [ $this, 'saveRecord' ];
+		$form->addSubmit( 'setFilter', 'Filter' );
+		$form->addSubmit( 'resetFilter', 'Reset' );
+		$form->addSubmit( 'saveRecord', 'Save' );
+		$form->addSubmit( 'cancelRecord', 'Cancel' );
+
+		$form->onSubmit[] = [ $this, 'processForm' ];
 
 		return $form;
+	}
+
+
+	/**
+	 * Filter container prototype
+	 *
+	 * @return Container
+	 */
+	public function createFilterContainer()
+	{
 	}
 
 
@@ -337,16 +352,15 @@ class DataGrid extends Control
 	}
 
 
-	public function setFilters( Form $form, array $values )
+	public function setFilter( $button, $data )
 	{
 	}
 
 
-	/**
-	public function saveRecord( Form $form, array $values )
+	public function saveRecord( $button, $data )
 	{
 	}
-	*/
+
 
 	/**
 	 * Remove record prototype

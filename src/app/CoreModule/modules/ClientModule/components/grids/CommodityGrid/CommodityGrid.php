@@ -6,6 +6,7 @@ use ACGrid\DataGrid;
 use Client\Model\ShopFacade;
 use Nette\Application\UI\Form;
 use Nette\Forms\Container;
+use Nette\Forms\Controls\SubmitButton;
 use Nette\Http\Session;
 
 /**
@@ -49,12 +50,10 @@ class CommodityGrid extends DataGrid
 		// normal data
 		$qb = $this->facade->getCommodityRepo()->createQueryBuilder( 'c' );
 		// filters
-		/**
-		 * foreach ( $this->filters as $col => $filter ) {
-		 * if ( $filter ) $qb->andWhere( "c.$col LIKE :$col" )
-		 * ->setParameter( "$col", "$filter%" );
-		 * }
-		 */
+		foreach ( $this->filters as $col => $filter ) {
+			if ( $filter ) $qb->andWhere( "c.$col LIKE :$col" )
+				->setParameter( "$col", "$filter%" );
+		}
 		// sort
 		foreach ( $this->sortCols as $sortCol )
 			$qb->addOrderBy( "c.$sortCol", self::DIR[ $this->sortDirs[ $sortCol ] ] );
@@ -72,13 +71,28 @@ class CommodityGrid extends DataGrid
 	{
 		$container = new Container();
 
-		$container->addText( 'name' )
-			->setAttribute( 'autofocus' );
+		$container->addText( 'name' );
 		$container->addText( 'info' );
 
-		if ( count( $this->filters ) ) $container->setDefaults( $this->filters );
+		$container->setDefaults( $this->filters );
 
 		return $container;
+	}
+
+
+	public function setFilter( $submit, $data )
+	{
+		if ( $submit == 'setFilter' ) {
+
+			$this->filters = $data;
+			$this->flashMessage( 'Filter set.' );
+		} else {
+
+			$this->filters = array_fill_keys( array_keys( $this->filters ), '' );
+			$this->flashMessage( 'Filter reset.' );
+		}
+
+		$this->redrawControl( 'grid' );
 	}
 
 
@@ -105,16 +119,11 @@ class CommodityGrid extends DataGrid
 	}
 
 
-	/**
-	 * @param Form $form
-	 * @param array $values
-	 */
-	public function saveRecord( Form $form, array $values )
+	public function saveRecord( $submit, $data )
 	{
-		file_put_contents( TEMP_DIR . '/sort.txt', var_export( $values, TRUE ) );
-		if ( $form[ 'saveRecord' ]->isSubmittedBy() ) {
+		if ( $submit == 'saveRecord' ) {
 
-			$this->dataSnippet[] = $commodity = $this->facade->saveCommodity( $values[ 'edit' ], TRUE );
+			$this->dataSnippet[] = $commodity = $this->facade->saveCommodity( $data, TRUE );
 			if ( $commodity ) {
 				$this->flashMessage( 'Commodity "' . $commodity->getName() . '" was successfully saved.' );
 			} else {
@@ -129,6 +138,20 @@ class CommodityGrid extends DataGrid
 			$this->redrawControl( 'data' );
 		} else {
 			$this->presenter->redirect( 'this', [ 'id' => NULL ] );
+		}
+	}
+
+
+	public function processForm( Form $form )
+	{
+		$button = $form->isSubmitted();
+		if ( $button ) {
+			$submit = $button->getName();
+			$data = $form->getValues( TRUE );
+			//file_put_contents( TEMP_DIR . '/sort.txt', var_export( $data, TRUE ) );
+
+			if ( $submit == 'setFilter' || $submit == 'resetFilter' ) $this->setFilter( $submit, $data[ 'filter' ] );
+			if ( $submit == 'saveRecord' || $submit == 'cancelRecord' ) $this->saveRecord( $submit, $data[ 'edit' ] );
 		}
 	}
 
