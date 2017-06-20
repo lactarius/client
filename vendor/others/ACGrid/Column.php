@@ -2,44 +2,43 @@
 
 namespace ACGrid;
 
-use Nette\Object;
+use Nette\SmartObject;
 
 /**
  * @author Petr Blazicek 2017
  */
-class Column extends Object
+class Column
 {
 
-	const TYPE_TEXT = 1;
-	const TYPE_LIST = 2;
+	use SmartObject;
 
-	/** @var  DataGrid */
+	const SORT_NOT_SORTABLE = NULL;
+	const SORT_OFF = 0;
+	const SORT_ASC = 1;
+	const SORT_DESC = 2;
+
+	/** @var DataGrid */
 	protected $grid;
 
-	/** @var  string */
+	/** @var string */
 	protected $name;
 
-	/** @var  string */
+	/** @var string */
 	protected $label;
 
-	/** @var  int */
-	protected $type;
-
 	/** @var int */
-	protected $sort = DataGrid::SORT_NOT_SORTABLE;
+	protected $sorting;
 
 
 	/**
 	 * Column constructor.
 	 * @param $name
 	 * @param null $label
-	 * @param int $type
 	 */
-	public function __construct( $name, $label = NULL, $type = self::TYPE_TEXT )
+	public function __construct( $name, $label = NULL )
 	{
 		$this->name = $name;
 		$this->label = $label;
-		$this->type = $type;
 	}
 
 
@@ -104,67 +103,34 @@ class Column extends Object
 
 
 	/**
-	 * @return int
+	 * @return bool
 	 */
-	public function getType()
+	public function isSortable()
 	{
-		return $this->type;
-	}
-
-
-	/**
-	 * @param int $type
-	 * @return self (fluent interface)
-	 */
-	public function setType( $type )
-	{
-		$this->type = $type;
-		return $this;
-	}
-
-
-	/**
-	 * @return int
-	 */
-	private function getPersistOrder()
-	{
-		if ( isset( $this->grid->sortDirs[ $this->name ] ) ) $this->sort = $this->grid->sortDirs[ $this->name ];
-		return $this->sort;
-	}
-
-
-	/**
-	 * @param $direction
-	 * @return self (fluent interface)
-	 */
-	private function setPersistOrder( $direction )
-	{
-		$this->sort = $this->grid->sortDirs[ $this->name ] = $direction;
-		return $this;
-	}
-
-
-	/**
-	 * @return int
-	 */
-	public function getOrder()
-	{
-		return $this->getPersistOrder();
-	}
-
-
-	/**
-	 * Add ordering capability to Column
-	 *
-	 * @param int $direction
-	 * @return self (fluent interface)
-	 */
-	public function order( $direction = DataGrid::SORT_OFF )
-	{
-		$this->getPersistOrder();
-		if ( !is_int( $this->sort ) ) {
-			$this->setPersistOrder( $direction );
+		if ( isset( $this->grid->sortable[ $this->name ] ) ) {
+			$this->sorting = $this->grid->sortable[ $this->name ];
+			return TRUE;
 		}
+		return FALSE;
+	}
+
+
+	/**
+	 * @return bool|int
+	 */
+	public function getSorting()
+	{
+		return $this->isSortable() ? $this->sorting : FALSE;
+	}
+
+
+	/**
+	 * @param int $sorting
+	 * @return self (fluent interface)
+	 */
+	public function sort( int $sorting = self::SORT_OFF ): Column
+	{
+		$this->grid->sortable[ $this->name ] = $this->sorting = $sorting;
 		return $this;
 	}
 }

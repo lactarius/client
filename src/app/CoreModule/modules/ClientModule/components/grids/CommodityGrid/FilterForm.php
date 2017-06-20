@@ -16,6 +16,6 @@ class FilterForm extends FormContainer
 		$this->addText( 'name' );
 		$this->addText( 'info' );
 
-		$this->setDefaults( $this->grid->filters );
+		$this->setDefaults( $this->grid->filtering );
 	}
 }

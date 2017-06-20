@@ -2,13 +2,14 @@
 
 namespace ACGrid;
 
+use ACPager\Pager;
 use Nette\Application\UI\Control;
 use Nette\Application\UI\Form;
 
 /**
  * @author Petr Blazicek 2017
  */
-class DataGrid extends Control
+abstract class DataGrid extends Control
 {
 
 	const CMD = [
@@ -17,18 +18,11 @@ class DataGrid extends Control
 		'REMOVE'     => 3,
 		'ORDER'      => 4,
 		'RESET_SORT' => 5,
+		'PAGE'       => 6,
 	];
-
-	const SESSION_SECTION = 'acgrid';
-
-	const SORT_NOT_SORTABLE = NULL;
-	const SORT_OFF = 0;
-	const SORT_ASC = 1;
-	const SORT_DESC = 2;
 
 	const DIR = [ 1 => 'ASC', 2 => 'DESC' ];
 
-	/** @var mixed */
 	protected $facade;
 
 
@@ -47,24 +41,27 @@ class DataGrid extends Control
 
 	// data structure
 
-	/** @var  Column|array */
+	/** @var Column|array */
 	protected $columns = [];
 
 	/** @persistent */
-	public $filters = [];
+	public $filtering = [];
 
 	/** @persistent */
-	public $sortCols = [];
+	public $sortable = [];
 
 	/** @persistent */
-	public $sortDirs = [];
+	public $sorting = [];
 
-	/** @var  mixed */
+	/** @var mixed */
 	protected $key = 'id';
+
+	/** @var Pager */
+	protected $pager;
 
 	// editing
 
-	/** @var  bool */
+	/** @var bool */
 	protected $editable = FALSE;
 
 	/** @var bool */
@@ -73,7 +70,7 @@ class DataGrid extends Control
 	/** @var bool */
 	protected $removable = FALSE;
 
-	/** @var  mixed */
+	/** @var mixed */
 	protected $id;
 
 	/** @var array */
@@ -81,16 +78,16 @@ class DataGrid extends Control
 
 	// design
 
-	/** @var  array */
+	/** @var array */
 	protected $stencils = [];
 
-	/** @var  int */
+	/** @var int */
 	protected $actionWidth = 2;
 
-	/** @var  string */
+	/** @var string */
 	protected $actitle;
 
-	/** @var  string */
+	/** @var string */
 	protected $acfooter;
 
 
@@ -99,9 +96,9 @@ class DataGrid extends Control
 	 */
 	public function __construct()
 	{
+		$this->pager = $this[ 'pager' ]->agent();
 		$this->build();
 	}
-
 
 	// factories
 
@@ -118,18 +115,12 @@ class DataGrid extends Control
 
 		if ( $this->isFiltering() ) {
 			$form[ 'filter' ] = new FilterForm( $this );
-		}
-
-		if ( $this->isEditing() ) {
-			$form[ 'edit' ] = new EditForm( $this );
-		}
-
-		if ( $this->isFiltering() ) {
 			$form->addSubmit( 'setFilter', 'Filter' );
 			$form->addSubmit( 'resetFilter', 'Reset' );
 		}
 
 		if ( $this->isEditing() ) {
+			$form[ 'edit' ] = new EditForm( $this );
 			$form->addSubmit( 'saveRecord', 'Save' );
 			$form->addSubmit( 'cancelRecord', 'Cancel' );
 		}
@@ -137,6 +128,12 @@ class DataGrid extends Control
 		$form->onSubmit[] = [ $this, 'processForm' ];
 
 		return $form;
+	}
+
+
+	protected function createComponentPager()
+	{
+		return new Pager();
 	}
 
 
@@ -178,15 +175,12 @@ class DataGrid extends Control
 	 *
 	 * @param $name
 	 * @param null $label
-	 * @param int $type
 	 * @return Column
 	 */
-	public function addColumn( $name, $label = NULL, $type = Column::TYPE_TEXT )
+	public function addColumn( $name, $label = NULL )
 	{
-		$column = new Column( $name, $label, $type );
-		$column->setGrid( $this );
-		$this->columns[ $name ] = $column;
-		return $column;
+		$this->columns[ $name ] = $column = new Column( $name, $label );
+		return $column->setGrid( $this );
 	}
 
 
@@ -207,21 +201,29 @@ class DataGrid extends Control
 
 
 	/**
-	 * Order of sorting
+	 * Numeric order of sorting column
 	 *
-	 * @param $col
-	 * @param $dir
+	 * @param string $col
+	 * @return int
+	 */
+	public function getColumnOrder( $col )
+	{
+		return array_search( $col, array_keys( $this->sorting ) );
+	}
+
+
+	/**
+	 * ASC / DESC direction => put on sorting list
+	 * Other => remove
+	 *
+	 * @param string $col
+	 * @param int $dir
 	 * @return self (fluent interface)
 	 */
-	public function setSort( $col, $dir )
+	public function setColumnOrder( $col, $dir )
 	{
-		$order = array_search( $col, $this->sortCols );
-		if ( $dir && !is_int( $order ) ) $this->sortCols[] = $col;
-		if ( $dir == self::SORT_OFF && is_int( $order ) ) {
-			unset( $this->sortCols[ $order ] );
-			$this->sortCols = array_values( $this->sortCols );
-		}
-
+		if ( $dir > 0 ) $this->sorting[ $col ] = $dir;
+		else unset( $this->sorting[ $col ] );
 		return $this;
 	}
 
@@ -232,12 +234,12 @@ class DataGrid extends Control
 	 * @param $col
 	 * @return self (fluent interface)
 	 */
-	public function switchSort( $col )
+	public function switchSortDirection( $col )
 	{
-		$dir = $this->sortDirs[ $col ];
-		$dir = $dir == self::SORT_DESC ? self::SORT_OFF : $dir + 1;
-		$this->sortDirs[ $col ] = $dir;
-		$this->setSort( $col, $dir );
+		$dir = $this->sortable[ $col ];
+		$newDir = $dir == Column::SORT_DESC ? Column::SORT_OFF : $dir + 1;
+		$this->sortable[ $col ] = $newDir;
+		$this->setColumnOrder( $col, $newDir );
 		return $this;
 	}
 
@@ -249,8 +251,7 @@ class DataGrid extends Control
 	 */
 	public function resetSort()
 	{
-		$this->sortCols = [];
-		$this->sortDirs = array_fill_keys( array_keys( $this->sortDirs ), self::SORT_OFF );
+		$this->sorting = [];
 		return $this;
 	}
 
@@ -287,7 +288,7 @@ class DataGrid extends Control
 	 */
 	public function isSorting()
 	{
-		return count( $this->sortDirs ) > 0;
+		return count( $this->sortable ) > 0;
 	}
 
 
@@ -479,6 +480,7 @@ class DataGrid extends Control
 			case self::CMD[ 'RESET_SORT' ]:
 				$this->resetSort();
 				$this->redrawControl( 'grid' );
+			case self::CMD[ 'PAGE' ]:
 		}
 	}
 
@@ -493,6 +495,7 @@ class DataGrid extends Control
 		$template = $this->template;
 		$template->setFile( __DIR__ . '/dataGrid.latte' );
 
+		$template->grid = $this;
 		$template->stencils = $this->stencils;
 		$template->actionWidth = $this->actionWidth;
 		$template->actitle = $this->actitle;
@@ -501,16 +504,16 @@ class DataGrid extends Control
 		$template->labels = $this->labels;
 		$template->columns = $this->columns;
 		$template->key = $this->key;
-		$template->isSorting = $this->isSorting();
+		//$template->isSorting = $this->isSorting();
 		$template->isFiltering = $this->isFiltering();
 		$template->isAdding = $this->isAdding();
 		$template->isRemoving = $this->isRemoving();
 		$template->isEditing = $this->isEditing();
 		$template->hasActions = $this->hasActions();
-		$template->sortDirs = $this->sortDirs;
-		$template->sortCols = $this->sortCols;
-		$template->filters = $this->filters;
-		$template->data = $this->dataSource();
+		$template->sortable = $this->sortable;
+		$template->sorting = $this->sorting;
+		$template->filtering = $this->filtering;
+		$template->data = $this->pager->paginate();
 		$template->id = $this->id;
 
 		$template->render();

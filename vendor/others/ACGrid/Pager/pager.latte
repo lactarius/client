@@ -1,0 +1,35 @@
+<ul class="pagination pull-right bottom-top-no-margin">
+	<li>
+		<span id="pageinput" contenteditable="true">?</span>
+	</li>
+	<li>
+		<a n:href="server!, $pager::CMD_SEND">
+			<span class="glyphicon glyphicon-ok"></span>
+		</a>
+	</li>
+	<li>
+		<a n:href="server!, $pager::CMD_FIRST">
+			<span class="glyphicon glyphicon-fast-backward"></span>
+		</a>
+	</li>
+	<li>
+		<a n:href="server!, $pager::CMD_PREVIOUS">
+			<span class="glyphicon glyphicon-backward"></span>
+		</a>
+	</li>
+	<li><a n:href="server!, $pager::CMD_PAGE, 1">1</a></li>
+	<li><a n:href="server!, $pager::CMD_PAGE, 2">2</a></li>
+	<li><a n:href="server!, $pager::CMD_PAGE, 3">3</a></li>
+	<li><a n:href="server!, $pager::CMD_PAGE, 4">4</a></li>
+	<li><a n:href="server!, $pager::CMD_PAGE, 5">5</a></li>
+	<li>
+		<a n:href="server!, $pager::CMD_NEXT">
+			<span class="glyphicon glyphicon-forward"></span>
+		</a>
+	</li>
+	<li>
+		<a n:href="server!, $pager::CMD_LAST">
+			<span class="glyphicon glyphicon-fast-forward"></span>
+		</a>
+	</li>
+</ul>

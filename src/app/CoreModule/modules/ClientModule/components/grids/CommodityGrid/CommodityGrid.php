@@ -3,15 +3,17 @@
 namespace Client\Components\Grids;
 
 use ACGrid\DataGrid;
+use ACGrid\IDataGrid;
+use Client\Model\Commodity;
 use Client\Model\ShopFacade;
-use Nette\Application\UI\Form;
-use Nette\Forms\Container;
+use Kdyby\Doctrine\QueryBuilder;
 use Nette\Http\Session;
+use Nette\Utils\Paginator;
 
 /**
  * @author Petr Blazicek 2017
  */
-class CommodityGrid extends DataGrid
+class CommodityGrid extends DataGrid implements IDataGrid
 {
 
 	public function __construct( ShopFacade $facade, Session $session )
@@ -22,6 +24,13 @@ class CommodityGrid extends DataGrid
 	}
 
 
+	protected function createComponentPaginator()
+	{
+		$control = new Paginator();
+		return $control;
+	}
+
+
 	/**
 	 * Grid builder
 	 */
@@ -29,8 +38,8 @@ class CommodityGrid extends DataGrid
 	{
 		$this->addStencil( __DIR__ . '/def.latte' );
 
-		$this->addColumn( 'name')->order();
-		$this->addColumn( 'info')->order();
+		$this->addColumn( 'name' )->sort();
+		$this->addColumn( 'info' )->sort();
 		$this->addColumn( 'parent', 'Parent' );
 
 		$this->allowRemoving()->allowAdding();
@@ -41,24 +50,43 @@ class CommodityGrid extends DataGrid
 	/**
 	 * Grid data source
 	 *
-	 * @return array
+	 * @param array $filter
+	 * @param array $sorting
+	 * @param int $action
+	 * @return QueryBuilder
 	 */
-	public function dataSource()
+	public function dataSource( $filter, $sorting, $action = IDataGrid::SOURCE_ACTION_DATA )
 	{
-		// snippet prepared?
-		if ( count( $this->dataSnippet ) ) return $this->dataSnippet;
-		// normal data
-		$qb = $this->facade->getCommodityRepo()->createQueryBuilder( 'c' );
-		// filters
-		foreach ( $this->filters as $col => $filter ) {
-			if ( $filter ) $qb->andWhere( "c.$col LIKE :$col" )
-				->setParameter( "$col", "$filter%" );
-		}
-		// sort
-		foreach ( $this->sortCols as $sortCol )
-			$qb->addOrderBy( "c.$sortCol", self::DIR[ $this->sortDirs[ $sortCol ] ] );
+		// snippet prepared
+		if ( $action === IDataGrid::SOURCE_ACTION_SNIPPET ) return $this->dataSnippet;
 
-		return $qb->getQuery()->getResult();
+		// create QueryBuilder
+		$repo = $this->facade->getCommodityRepo();
+		$qb = $repo->createQueryBuilder();
+
+		// normal data
+		if ( $action === IDataGrid::SOURCE_ACTION_DATA ) {
+			$qb->select( 'c' );
+			// rows count
+		} else {
+			$qb->select( 'COUNT(c.id)' );
+		}
+
+		$qb->from( Commodity::class, 'c' );
+
+		// filters
+		foreach ( $filter as $col => $value ) {
+			if ( $value ) $qb->andWhere( "c.$col LIKE :$col" )
+				->setParameter( "$col", "$value%" );
+		}
+
+		// sort
+		if ( $action == self::SOURCE_ACTION_DATA ) {
+			foreach ( $sorting as $col => $dir )
+				$qb->addOrderBy( "c.$col", self::DIR[ $dir ] );
+		}
+
+		return $qb;
 	}
 
 
@@ -72,12 +100,11 @@ class CommodityGrid extends DataGrid
 	{
 		if ( $submit == 'setFilter' ) {
 
-			$this->filters = $data;
+			$this->filtering = $data;
 			$this->flashMessage( 'Filter set.' );
 		} else {
 
-			//$this->filters = array_fill_keys( array_keys( $this->filters ), '' );
-			$this->filters = [];
+			$this->filtering = [];
 			$this->flashMessage( 'Filter reset.' );
 		}
 

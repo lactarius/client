@@ -19,11 +19,11 @@ class EditForm extends FormContainer
 		parent::__construct( $grid );
 		$this->facade = $grid->getFacade();
 
-		$this->addText( 'name' );
+		$this->addText( 'name' )
+			->setAttribute( 'autofocus' );
 		$this->addText( 'info' );
 		$this->addSelect( 'parent', NULL, $this->facade->parentSelect( $this->grid->getId() ) );
 
-		if ( $this->grid->getId() )
-			$this->setDefaults( $this->grid->getFacade()->restoreCommodity( $this->grid->getId() ) );
+		if ( $this->grid->getId() ) $this->setDefaults( $this->grid->getFacade()->restoreCommodity( $this->grid->getId() ) );
 	}
 }

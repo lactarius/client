@@ -14,7 +14,9 @@
 		<div n:snippet="flashes">
 			<div n:foreach="$flashes as $flash"
 					class="alert alert-{$flash->type === 'error' ? 'danger' : $flash->type} alert-dismissable">
-				<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+				<a href="#" class="close" data-dismiss="alert" aria-label="close">
+					<span class="glyphicon glyphicon-remove"></span>
+				</a>
 				<strong>{$flash->message}</strong>
 			</div>
 		</div>
@@ -34,6 +36,7 @@
 		<tr n:if="$acfooter">
 			<td colspan="{$colspan}">
 				{$acfooter|noescape}
+				{control vp}
 			</td>
 		</tr>
 	{/define}
@@ -53,7 +56,7 @@
 					{/ifset}
 				</td>
 			{/foreach}
-			{include #filter-buttons filtered => count($filters), $hasActions, $labels}
+			{include #filter-buttons filtered => count($filtering), $hasActions, $labels}
 		</tr>
 	{/define}
 
@@ -61,11 +64,11 @@
 
 	{define filter-buttons}
 		<td n:if="$hasActions">
-			<button n:if="$filtered" n:name="resetFilter" class="ajax btn btn-default btn-xs">
-				<span class="glyphicon glyphicon-share-alt"></span> {$labels['reset_filter']}
-			</button>
 			<button n:name="setFilter" class="ajax btn btn-primary btn-xs">
 				<span class="glyphicon glyphicon-filter"></span> {$labels['set_filter']}
+			</button>
+			<button n:if="$filtered" n:name="resetFilter" class="ajax btn btn-default btn-xs">
+				<span class="glyphicon glyphicon-share-alt"></span> {$labels['reset_filter']}
 			</button>
 		</td>
 	{/define}
@@ -78,34 +81,42 @@
 				<th>
 					{var $colname = $column->name}
 					{var $collabel = $column->label ?: Nette\Utils\Strings::firstUpper($colname)}
-					{if isset($sortDirs[$colname])}
+					{if $column->isSortable()}
 						<a n:href="server! $cmd['ORDER'], $colname" class="ajax">
 							{$collabel}
-							{var $index = array_search($colname, $sortCols)}
+							{var $index = $grid->getColumnOrder($colname)}
 							{if is_int($index)}
 								{$index + 1}
 							{/if}
-							<span class="glyphicon {if $sortDirs[$colname] == 1}glyphicon-arrow-up
-										{elseif $sortDirs[$colname] == 2}glyphicon-arrow-down{/if}"></span>
+							{var $dir = $column->getSorting()}
+							<span class="glyphicon {if $dir == 1}glyphicon-arrow-up
+								{elseif $dir == 2}glyphicon-arrow-down{/if}"></span>
 						</a>
 					{else}
 						{$collabel}
 					{/if}
 				</th>
 			{/foreach}
-			<th n:if="$hasActions" class="col-sm-{$actionWidth}">
-				<a n:if="count($sortCols)" n:href="server! $cmd['RESET_SORT']"
-						data-toggle="tooltip" data-placement="top" title="Reset all sorting"
-						class="ajax btn btn-default btn-xs" role="button">
-					<span class="glyphicon glyphicon-share-alt"></span> {$labels['reset_sort']}
-				</a>
-				<a n:if="$isAdding" n:href="server! $cmd['ADD']"
-						data-toggle="tooltip" data-placement="top" title="Create new dummy record"
-						class="ajax btn btn-primary btn-xs" role="button">
-					<span class="glyphicon glyphicon-plus"></span> {$labels['new']}
-				</a>
-			</th>
+			{include #sorting-buttons sorts => (count($sorting) > 0), $isAdding, $hasActions,
+				$actionWidth, $cmd, $labels}
 		</tr>
+	{/define}
+
+	{* ====== SORTING BUTTONS ==================== *}
+
+	{define sorting-buttons}
+		<th n:if="$hasActions" class="col-sm-{$actionWidth}">
+			<a n:if="$isAdding" n:href="server! $cmd['ADD']"
+					data-toggle="tooltip" data-placement="top" title="Create new dummy record"
+					class="ajax btn btn-primary btn-xs" role="button">
+				<span class="glyphicon glyphicon-plus"></span> {$labels['new']}
+			</a>
+			<a n:if="$sorts" n:href="server! $cmd['RESET_SORT']"
+					data-toggle="tooltip" data-placement="top" title="Reset all sorting"
+					class="ajax btn btn-default btn-xs" role="button">
+				<span class="glyphicon glyphicon-share-alt"></span> {$labels['reset_sort']}
+			</a>
+		</th>
 	{/define}
 
 	{* ====== LINE =============================== *}
@@ -164,27 +175,33 @@
 
 	{form editForm}
 		<div class="container">
-			{include #flashes}
-
-			<table class="table table-bordered table-striped">
-				{var $colspan = count($columns) + ($hasActions ? 1 : 0)}
-
-				<thead>
-				{include #ac-title $actitle, $colspan}
-				{include #filter $columns, $filters, $isFiltering, $hasActions, $labels}
-				{include #sorting $columns, $sortDirs, $sortCols, $cmd, $isAdding, $hasActions, $actionWidth, $labels}
-				</thead>
-				{snippet data}
-					<tbody>
-					{foreach $data as $row}
-						{include #line $row, $columns, $id, $isRemoving, $isEditing, $hasActions, $cmd, $labels}
-					{/foreach}
-					</tbody>
-				{/snippet}
-				<tfoot>
-				{include #ac-footer $acfooter, $colspan}
-				</tfoot>
-			</table>
+			<div class="row">
+				<div class="table-responsive">
+					{include #flashes}
+					<table class="table table-bordered table-striped">
+						{var $colspan = count($columns) + ($hasActions ? 1 : 0)}
+						<thead>
+						{include #ac-title $actitle, $colspan}
+						{include #filter $columns, $filtering, $isFiltering, $hasActions, $labels}
+						{include #sorting $grid, $columns, $sorting, $cmd, $isAdding, $hasActions, $actionWidth, $labels}
+						</thead>
+						{snippet data}
+							<tbody>
+							{foreach $data as $row}
+								{include #line $row, $columns, $id, $isRemoving, $isEditing, $hasActions, $cmd, $labels}
+							{/foreach}
+							</tbody>
+						{/snippet}
+						<tfoot>
+						<tr>
+							<td colspan="{$colspan}">
+								{control pager}
+							</td>
+						</tr>
+						</tfoot>
+					</table>
+				</div>
+			</div>
 		</div>
 	{/form}
 
