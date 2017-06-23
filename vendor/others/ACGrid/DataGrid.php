@@ -94,13 +94,28 @@ abstract class DataGrid extends Control
 	/**
 	 * DataGrid constructor.
 	 */
-	public function __construct()
+	public function __construct( $facade )
 	{
+		$this->facade = $facade;
 		$this->pager = $this[ 'pager' ]->agent( $this );
 		$this->build();
 	}
 
+
 	// factories
+
+
+	/**
+	 * Pager factory
+	 *
+	 * @return Pager
+	 */
+	protected function createComponentPager()
+	{
+		$control = new Pager();
+		$control->setSource( $this->dataSource( $this->filtering, $this->sorting ) );
+		return $control;
+	}
 
 
 	/**
@@ -128,12 +143,6 @@ abstract class DataGrid extends Control
 		$form->onSubmit[] = [ $this, 'processForm' ];
 
 		return $form;
-	}
-
-
-	protected function createComponentPager()
-	{
-		return new Pager();
 	}
 
 
@@ -527,10 +536,7 @@ abstract class DataGrid extends Control
 		$template->id = $this->id;
 
 		if ( count( $this->dataSnippet ) ) $template->data = $this->dataSnippet;
-		else {
-			$this->pager->setSource( $this->dataSource( $this->filtering, $this->sorting ) );
-			$template->data = $this->pager->paginate();
-		}
+		else $template->data = $this->pager->getData();
 
 		$template->render();
 	}

@@ -63,6 +63,9 @@ class Pager extends Control
 	/** @persistent */
 	public $buttons = [];
 
+	/** @var array */
+	protected $data;
+
 
 	public function __construct()
 	{
@@ -130,6 +133,7 @@ class Pager extends Control
 	 */
 	public function getCurrentPage(): int
 	{
+		if ( !$this->currentPage ) $this->currentPage = 1;
 		return $this->currentPage;
 	}
 
@@ -169,6 +173,28 @@ class Pager extends Control
 		];
 		return $this;
 	}
+
+
+	/**
+	 * @return array
+	 */
+	public function getData(): array
+	{
+		if ( !$this->data ) $this->paginate();
+		return $this->data;
+	}
+
+
+	/**
+	 * @param array $data
+	 * @return self (fluent interface)
+	 */
+	public function setData( array $data ): Pager
+	{
+		$this->data = $data;
+		return $this;
+	}
+
 
 	// body
 
@@ -210,7 +236,7 @@ class Pager extends Control
 	}
 
 
-	public function paginate( $page = 1 )
+	public function paginate()
 	{
 		// not fresh => reload data
 		if ( !$this->updated ) {
@@ -218,14 +244,12 @@ class Pager extends Control
 			$this->updated = TRUE;
 		}
 
+		file_put_contents( TEMP_DIR . '/sort.txt', var_export( $this->rowCount, TRUE ) );
 		$qb = $this->source;
-		$offset = ( $page - 1 ) * $this->getRowsPerPage();
+		$offset = ( $this->getCurrentPage() - 1 ) * $this->getRowsPerPage();
 		$qb->setFirstResult( $offset )->setMaxResults( $this->getRowsPerPage() );
 
-		//file_put_contents( TEMP_DIR . '/sort.txt', var_export( $res, TRUE ) );
-		$this->setCurrentPage( $page );
-
-		return $qb->getQuery()->getResult();
+		$this->setData( $qb->getQuery()->getResult() );
 	}
 
 
@@ -262,13 +286,13 @@ class Pager extends Control
 				break;
 			case 'last':
 				$page = $this->getPageCount() - 1;
-				break;
 		}
 
-		$this->paginate( $page );
-		$this->grid->redrawControl( 'stencils' );
-		$this->grid->redrawControl( 'flashes' );
-		$this->grid->redrawControl( 'data' );
+		$this->setCurrentPage( $page );
+		$this->paginate();
+		//$this->grid->redrawControl( 'stencils' );
+		//$this->grid->redrawControl( 'flashes' );
+		$this->grid->redrawControl( 'grid' );
 
 		$this->presenter->payload->result = TRUE;
 		$this->presenter->sendPayload();

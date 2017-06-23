@@ -4,11 +4,8 @@ namespace Client\Components\Grids;
 
 use ACGrid\DataGrid;
 use ACGrid\IDataGrid;
-use Client\Model\Commodity;
 use Client\Model\ShopFacade;
 use Kdyby\Doctrine\QueryBuilder;
-use Nette\Http\Session;
-use Nette\Utils\Paginator;
 
 /**
  * @author Petr Blazicek 2017
@@ -16,18 +13,9 @@ use Nette\Utils\Paginator;
 class CommodityGrid extends DataGrid implements IDataGrid
 {
 
-	public function __construct( ShopFacade $facade, Session $session )
+	public function __construct(ShopFacade $facade)
 	{
-		parent::__construct( $session );
-		/* @var ShopFacade $facade */
-		$this->facade = $facade;
-	}
-
-
-	protected function createComponentPaginator()
-	{
-		$control = new Paginator();
-		return $control;
+		parent::__construct($facade);
 	}
 
 
@@ -45,8 +33,8 @@ class CommodityGrid extends DataGrid implements IDataGrid
 		$this->allowRemoving()->allowAdding();
 		$this->setTitle()->setFooter();
 
-		$this->pager->setButtons( TRUE, TRUE, TRUE,5)
-			->setRowsPerPage(7);
+		$this->pager->setButtons( TRUE, TRUE, TRUE, 5 )
+			->setRowsPerPage( 7 );
 	}
 
 
@@ -60,7 +48,10 @@ class CommodityGrid extends DataGrid implements IDataGrid
 	public function dataSource( $filter, $sorting )
 	{
 		// create QueryBuilder
-		$qb = $this->facade->getCommodityRepo()->createQueryBuilder( 'c' );
+
+		/** @var ShopFacade $facade */
+		$facade=$this->facade;
+		$qb=$facade->getCommodityRepo()->createQueryBuilder('c');
 
 		// filters
 		foreach ( $filter as $col => $value ) {
