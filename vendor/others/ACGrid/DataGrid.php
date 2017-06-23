@@ -96,7 +96,7 @@ abstract class DataGrid extends Control
 	 */
 	public function __construct()
 	{
-		$this->pager = $this[ 'pager' ]->agent();
+		$this->pager = $this[ 'pager' ]->agent( $this );
 		$this->build();
 	}
 
@@ -148,7 +148,6 @@ abstract class DataGrid extends Control
 		if ( $button ) {
 			$submit = $button->getName();
 			$data = $form->getValues( TRUE );
-			//file_put_contents( TEMP_DIR . '/sort.txt', var_export( $data, TRUE ) );
 
 			if ( $submit == 'setFilter' || $submit == 'resetFilter' ) $this->setFilter( $submit, $data[ 'filter' ] );
 			if ( $submit == 'saveRecord' || $submit == 'cancelRecord' ) $this->saveRecord( $submit, $data[ 'edit' ] );
@@ -361,6 +360,19 @@ abstract class DataGrid extends Control
 		return $this;
 	}
 
+
+	/**
+	 * Data source prototype
+	 *
+	 * @param array $filter
+	 * @param array $sorting
+	 * @return array
+	 */
+	public function dataSource( $filter, $sorting )
+	{
+		return [];
+	}
+
 	// design
 
 
@@ -474,13 +486,12 @@ abstract class DataGrid extends Control
 				$this->removeRecord( $id );
 				break;
 			case self::CMD[ 'ORDER' ]:
-				$this->switchSort( $id );
+				$this->switchSortDirection( $id );
 				$this->redrawControl( 'grid' );
 				break;
 			case self::CMD[ 'RESET_SORT' ]:
 				$this->resetSort();
 				$this->redrawControl( 'grid' );
-			case self::CMD[ 'PAGE' ]:
 		}
 	}
 
@@ -504,7 +515,7 @@ abstract class DataGrid extends Control
 		$template->labels = $this->labels;
 		$template->columns = $this->columns;
 		$template->key = $this->key;
-		//$template->isSorting = $this->isSorting();
+		$template->isSorting = $this->isSorting();
 		$template->isFiltering = $this->isFiltering();
 		$template->isAdding = $this->isAdding();
 		$template->isRemoving = $this->isRemoving();
@@ -513,8 +524,13 @@ abstract class DataGrid extends Control
 		$template->sortable = $this->sortable;
 		$template->sorting = $this->sorting;
 		$template->filtering = $this->filtering;
-		$template->data = $this->pager->paginate();
 		$template->id = $this->id;
+
+		if ( count( $this->dataSnippet ) ) $template->data = $this->dataSnippet;
+		else {
+			$this->pager->setSource( $this->dataSource( $this->filtering, $this->sorting ) );
+			$template->data = $this->pager->paginate();
+		}
 
 		$template->render();
 	}

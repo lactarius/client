@@ -1,35 +1,55 @@
-<ul class="pagination pull-right bottom-top-no-margin">
-	<li>
-		<span id="pageinput" contenteditable="true">?</span>
-	</li>
-	<li>
-		<a n:href="server!, $pager::CMD_SEND">
-			<span class="glyphicon glyphicon-ok"></span>
-		</a>
-	</li>
-	<li>
-		<a n:href="server!, $pager::CMD_FIRST">
-			<span class="glyphicon glyphicon-fast-backward"></span>
-		</a>
-	</li>
-	<li>
-		<a n:href="server!, $pager::CMD_PREVIOUS">
+{* ACPager default template *}
+
+<ul class="pagination pull-right bottom-top-no-margin" id="{$htmlId}-wrapper" data-opts='{$jsOptions|noescape}'>
+
+	{if $buttons['firstPage']}
+		<li class="{if $currentPage == 1}disabled{/if}">
+			<a href="#" id="{$htmlId}-first" class="ajax"
+			   data-toggle="tooltip" data-placement="top" title="Skip on first page">
+				<span class="glyphicon glyphicon-fast-backward"></span>
+			</a>
+		</li>
+	{/if}
+	<li class="{if $currentPage == 1}disabled{/if}">
+		<a href="#" id="{$htmlId}-prev" class="ajax"
+		   data-toggle="tooltip" data-placement="top" title="Skip on previous page">
 			<span class="glyphicon glyphicon-backward"></span>
 		</a>
 	</li>
-	<li><a n:href="server!, $pager::CMD_PAGE, 1">1</a></li>
-	<li><a n:href="server!, $pager::CMD_PAGE, 2">2</a></li>
-	<li><a n:href="server!, $pager::CMD_PAGE, 3">3</a></li>
-	<li><a n:href="server!, $pager::CMD_PAGE, 4">4</a></li>
-	<li><a n:href="server!, $pager::CMD_PAGE, 5">5</a></li>
-	<li>
-		<a n:href="server!, $pager::CMD_NEXT">
+
+	{if $buttons['pageNumber']}
+		<li>
+			<span contenteditable="true" id="{$htmlId}-number"
+			      data-toggle="tooltip" data-placement="top" title="Current page, change if you like.">
+				{$currentPage}
+			</span>
+		</li>
+	{/if}
+
+	{for $i = 0; $i < $buttons['pageSelect']; $i ++}
+		{var $page = $currentPage + $i * $buttons['pageStep']}
+		<li class="{if !$buttons['pageNumber'] && $page == $currentPage}active{/if}
+					{if $page == $currentPage || $page > $pageCount} disabled{/if} ajax">
+			<a href="#" class="page-sel" id="{$htmlId}-sel-{$i}"
+			   data-toggle="tooltip" data-placement="top" title="Skip on page No.">
+				<span>{$page}</span>
+			</a>
+		</li>
+	{/for}
+
+	<li class="{if $currentPage == $pageCount - 1}disabled{/if}">
+		<a href="#" id="{$htmlId}-next" class="ajax"
+		   data-toggle="tooltip" data-placement="top" title="Skip on next page">
 			<span class="glyphicon glyphicon-forward"></span>
 		</a>
 	</li>
-	<li>
-		<a n:href="server!, $pager::CMD_LAST">
-			<span class="glyphicon glyphicon-fast-forward"></span>
-		</a>
-	</li>
+	{if $buttons['lastPage']}
+		<li class="{if $currentPage == $pageCount - 1}disabled{/if}">
+			<a href="#" id="{$htmlId}-last" class="ajax"
+			   data-toggle="tooltip" data-placement="top" title="Skip on last page">
+				<span class="glyphicon glyphicon-fast-forward"></span>
+			</a>
+		</li>
+	{/if}
+
 </ul>

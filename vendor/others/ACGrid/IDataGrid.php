@@ -9,12 +9,6 @@ use Kdyby\Doctrine\QueryBuilder;
  */
 interface IDataGrid
 {
-
-	const SOURCE_ACTION_DATA = 1;
-	const SOURCE_ACTION_SNIPPET = 2;
-	const SOURCE_ACTION_COUNT = 3;
-
-
 	/**
 	 * @param string $name
 	 * @param string|NULL $label
@@ -28,8 +22,7 @@ interface IDataGrid
 	 *
 	 * @param array $filter
 	 * @param array $sorting
-	 * @param int $action
 	 * @return QueryBuilder
 	 */
-	function dataSource( $filter, $sorting, $action = self::SOURCE_ACTION_DATA );
+	function dataSource( $filter, $sorting );
 }

@@ -44,6 +44,9 @@ class CommodityGrid extends DataGrid implements IDataGrid
 
 		$this->allowRemoving()->allowAdding();
 		$this->setTitle()->setFooter();
+
+		$this->pager->setButtons( TRUE, TRUE, TRUE,5)
+			->setRowsPerPage(7);
 	}
 
 
@@ -52,27 +55,12 @@ class CommodityGrid extends DataGrid implements IDataGrid
 	 *
 	 * @param array $filter
 	 * @param array $sorting
-	 * @param int $action
 	 * @return QueryBuilder
 	 */
-	public function dataSource( $filter, $sorting, $action = IDataGrid::SOURCE_ACTION_DATA )
+	public function dataSource( $filter, $sorting )
 	{
-		// snippet prepared
-		if ( $action === IDataGrid::SOURCE_ACTION_SNIPPET ) return $this->dataSnippet;
-
 		// create QueryBuilder
-		$repo = $this->facade->getCommodityRepo();
-		$qb = $repo->createQueryBuilder();
-
-		// normal data
-		if ( $action === IDataGrid::SOURCE_ACTION_DATA ) {
-			$qb->select( 'c' );
-			// rows count
-		} else {
-			$qb->select( 'COUNT(c.id)' );
-		}
-
-		$qb->from( Commodity::class, 'c' );
+		$qb = $this->facade->getCommodityRepo()->createQueryBuilder( 'c' );
 
 		// filters
 		foreach ( $filter as $col => $value ) {
@@ -81,10 +69,8 @@ class CommodityGrid extends DataGrid implements IDataGrid
 		}
 
 		// sort
-		if ( $action == self::SOURCE_ACTION_DATA ) {
-			foreach ( $sorting as $col => $dir )
-				$qb->addOrderBy( "c.$col", self::DIR[ $dir ] );
-		}
+		foreach ( $sorting as $col => $dir )
+			$qb->addOrderBy( "c.$col", self::DIR[ $dir ] );
 
 		return $qb;
 	}
