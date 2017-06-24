@@ -139,9 +139,9 @@ class Pager extends Control
 
 		$this->setCurrentPage( $page );
 		$this->paginate();
-		//$this->grid->redrawControl( 'stencils' );
-		//$this->grid->redrawControl( 'flashes' );
-		$this->grid->redrawControl( 'grid' );
+		$this->grid->redrawControl( 'stencils' );
+		$this->grid->redrawControl( 'flashes' );
+		$this->grid->redrawControl( 'data' );
 
 		$this->presenter->payload->result = TRUE;
 		$this->presenter->sendPayload();
