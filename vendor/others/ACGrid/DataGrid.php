@@ -2,7 +2,6 @@
 
 namespace ACGrid;
 
-use ACPager\Pager;
 use Nette\Application\UI\Control;
 use Nette\Application\UI\Form;
 
@@ -56,9 +55,6 @@ abstract class DataGrid extends Control
 	/** @var mixed */
 	protected $key = 'id';
 
-	/** @var Pager */
-	protected $pager;
-
 	// editing
 
 	/** @var bool */
@@ -97,25 +93,11 @@ abstract class DataGrid extends Control
 	public function __construct( $facade )
 	{
 		$this->facade = $facade;
-		$this->pager = $this[ 'pager' ]->agent( $this );
 		$this->build();
 	}
 
 
 	// factories
-
-
-	/**
-	 * Pager factory
-	 *
-	 * @return Pager
-	 */
-	protected function createComponentPager()
-	{
-		$control = new Pager();
-		$control->setSource( $this->dataSource( $this->filtering, $this->sorting ) );
-		return $control;
-	}
 
 
 	/**
@@ -536,7 +518,7 @@ abstract class DataGrid extends Control
 		$template->id = $this->id;
 
 		if ( count( $this->dataSnippet ) ) $template->data = $this->dataSnippet;
-		else $template->data = $this->pager->getData();
+		else $template->data = $this->dataSource( $this->filtering, $this->sorting );
 
 		$template->render();
 	}

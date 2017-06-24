@@ -13,9 +13,9 @@ use Kdyby\Doctrine\QueryBuilder;
 class CommodityGrid extends DataGrid implements IDataGrid
 {
 
-	public function __construct(ShopFacade $facade)
+	public function __construct( ShopFacade $facade )
 	{
-		parent::__construct($facade);
+		parent::__construct( $facade );
 	}
 
 
@@ -32,9 +32,6 @@ class CommodityGrid extends DataGrid implements IDataGrid
 
 		$this->allowRemoving()->allowAdding();
 		$this->setTitle()->setFooter();
-
-		$this->pager->setButtons( TRUE, TRUE, TRUE, 5 )
-			->setRowsPerPage( 7 );
 	}
 
 
@@ -50,8 +47,8 @@ class CommodityGrid extends DataGrid implements IDataGrid
 		// create QueryBuilder
 
 		/** @var ShopFacade $facade */
-		$facade=$this->facade;
-		$qb=$facade->getCommodityRepo()->createQueryBuilder('c');
+		$facade = $this->facade;
+		$qb = $facade->getCommodityRepo()->createQueryBuilder( 'c' );
 
 		// filters
 		foreach ( $filter as $col => $value ) {
@@ -63,7 +60,7 @@ class CommodityGrid extends DataGrid implements IDataGrid
 		foreach ( $sorting as $col => $dir )
 			$qb->addOrderBy( "c.$col", self::DIR[ $dir ] );
 
-		return $qb;
+		return $qb->getQuery()->getResult();
 	}
 
 
