@@ -5,8 +5,6 @@ namespace ACPager;
 use ACGrid\DataGrid;
 use Kdyby\Doctrine\QueryBuilder;
 use Nette\Application\UI\Control;
-use Nette\Http\Session;
-use Nette\Http\SessionSection;
 
 /**
  * @author Petr Blazicek 2017
@@ -33,12 +31,6 @@ class Pager extends Control
 		],
 	];
 
-	/** @var Session */
-	protected $session;
-
-	/** @var SessionSection */
-	protected $section;
-
 	/** @var DataGrid */
 	protected $grid;
 
@@ -46,105 +38,36 @@ class Pager extends Control
 	protected $htmlId;
 
 	/** @var QueryBuilder */
-	protected $source;
+	protected $builder;
 
-	/** @persistent */
+	/** @var bool */
 	protected $updated;
 
-	/** @persistent */
-	public $rowCount;
+	/** @var int */
+	protected $rowCount;
 
-	/** @persistent */
-	public $rowsPerPage;
+	/** @var int */
+	protected $rowsPerPage;
 
-	/** @persistent */
-	public $currentPage;
-
-	/** @persistent */
-	public $buttons = [];
+	/** @var int */
+	protected $currentPage;
 
 	/** @var array */
-	protected $data;
+	protected $buttons = [];
 
 
 	public function __construct()
 	{
-		//$this->session = $session;
-		//$this->section = $session->getSection( $this->getUniqueId() );
 	}
 
 
 	// getters & setters
 
 
-	/**
-	 * @param QueryBuilder $source
-	 * @return self (fluent interface)
-	 */
-	public function setSource( QueryBuilder $source ): Pager
-	{
-		$this->source = $source;
-		return $this;
-	}
+	// body
 
-
-	/**
-	 * @return int
-	 */
-	public function getRowCount(): int
-	{
-		return $this->rowCount;
-	}
-
-
-	/**
-	 * @return int
-	 */
-	public function getRowsPerPage(): int
-	{
-		if ( !$this->rowsPerPage ) $this->rowsPerPage = self::DEFAULTS[ 'values' ][ 'rowsPerPage' ];
-		return $this->rowsPerPage;
-	}
-
-
-	/**
-	 * @param int $rowsPerPage
-	 * @return self (fluent interface)
-	 */
-	public function setRowsPerPage( int $rowsPerPage ): Pager
-	{
-		$this->rowsPerPage = $rowsPerPage;
-		return $this;
-	}
-
-
-	/**
-	 * @return int
-	 */
-	public function getPageCount()
-	{
-		return intdiv( $this->getRowCount(), $this->getRowsPerPage() )
-			+ ( $this->getRowCount() % $this->getRowsPerPage() > 0 ? 1 : 0 );
-	}
-
-
-	/**
-	 * @return int
-	 */
-	public function getCurrentPage(): int
-	{
-		if ( !$this->currentPage ) $this->currentPage = 1;
-		return $this->currentPage;
-	}
-
-
-	/**
-	 * @param int $currentPage
-	 * @return self (fluent interface)
-	 */
-	public function setCurrentPage( int $currentPage ): Pager
-	{
-		$this->currentPage = $currentPage;
+	public function hookUp(DataGrid $grid){
+		$this->grid=$grid;
 		return $this;
 	}
 
@@ -176,83 +99,8 @@ class Pager extends Control
 
 
 	/**
-	 * @return array
+	 * @return string
 	 */
-	public function getData(): array
-	{
-		if ( !$this->data ) $this->paginate();
-		return $this->data;
-	}
-
-
-	/**
-	 * @param array $data
-	 * @return self (fluent interface)
-	 */
-	public function setData( array $data ): Pager
-	{
-		$this->data = $data;
-		return $this;
-	}
-
-
-	// body
-
-
-	/**
-	 * Create substitute (joke...)
-	 *
-	 * @param DataGrid $grid
-	 * @return self (fluent interface)
-	 */
-	public function agent( DataGrid $grid )
-	{
-		$this->grid = $grid;
-		return $this;
-	}
-
-
-	/**
-	 * @return self (fluent interface)
-	 */
-	public function invalidate()
-	{
-		$this->updated = FALSE;
-		return $this;
-	}
-
-
-	public function calculateRowCount()
-	{
-		$qb = clone $this->source;
-		$alias = $qb->getRootAliases()[ 0 ];
-
-		$qb->resetDQLParts( [ 'select', 'orderBy' ] );
-		$qb->select( "COUNT($alias.id)" );
-
-		return $qb
-			->getQuery()
-			->getSingleScalarResult();
-	}
-
-
-	public function paginate()
-	{
-		// not fresh => reload data
-		if ( !$this->updated ) {
-			$this->rowCount = $this->calculateRowCount();
-			$this->updated = TRUE;
-		}
-
-		file_put_contents( TEMP_DIR . '/sort.txt', var_export( $this->rowCount, TRUE ) );
-		$qb = $this->source;
-		$offset = ( $this->getCurrentPage() - 1 ) * $this->getRowsPerPage();
-		$qb->setFirstResult( $offset )->setMaxResults( $this->getRowsPerPage() );
-
-		$this->setData( $qb->getQuery()->getResult() );
-	}
-
-
 	protected function getJsOptions()
 	{
 		$options = [
@@ -265,6 +113,7 @@ class Pager extends Control
 
 
 	// signal receiver
+
 
 	public function handleServer()
 	{
