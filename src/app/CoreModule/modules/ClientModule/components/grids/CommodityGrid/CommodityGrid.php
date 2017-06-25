@@ -30,6 +30,8 @@ class CommodityGrid extends DataGrid implements IDataGrid
 		$this->addColumn( 'info' )->sort();
 		$this->addColumn( 'parent', 'Parent' );
 
+		//$this->setRowsPerPage( 7 );
+
 		$this->allowRemoving()->allowAdding();
 		$this->setTitle()->setFooter();
 	}
@@ -60,7 +62,7 @@ class CommodityGrid extends DataGrid implements IDataGrid
 		foreach ( $sorting as $col => $dir )
 			$qb->addOrderBy( "c.$col", self::DIR[ $dir ] );
 
-		return $qb->getQuery()->getResult();
+		return $qb;
 	}
 
 
@@ -82,6 +84,7 @@ class CommodityGrid extends DataGrid implements IDataGrid
 			$this->flashMessage( 'Filter reset.' );
 		}
 
+		$this->invalidatePager();
 		$this->redrawControl( 'grid' );
 	}
 

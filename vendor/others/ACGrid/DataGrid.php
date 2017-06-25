@@ -2,8 +2,10 @@
 
 namespace ACGrid;
 
+use Kdyby\Doctrine\QueryBuilder;
 use Nette\Application\UI\Control;
 use Nette\Application\UI\Form;
+use Nette\InvalidArgumentException;
 
 /**
  * @author Petr Blazicek 2017
@@ -17,7 +19,11 @@ abstract class DataGrid extends Control
 		'REMOVE'     => 3,
 		'ORDER'      => 4,
 		'RESET_SORT' => 5,
-		'PAGE'       => 6,
+		'PG_FIRST'   => 10,
+		'PG_PREV'    => 11,
+		'PG_NEXT'    => 12,
+		'PG_LAST'    => 13,
+		'PG_QUICK'   => 14,
 	];
 
 	const DIR = [ 1 => 'ASC', 2 => 'DESC' ];
@@ -36,6 +42,18 @@ abstract class DataGrid extends Control
 		'reset_sort'    => 'Reset',
 		'set_filter'    => 'Filter',
 		'reset_filter'  => 'Reset',
+	];
+
+	// pager
+
+	const ROWS_PER_PAGE = 5;
+
+	const PAGER_BUTTONS = [
+		'first'      => FALSE,
+		'last'       => FALSE,
+		'quick'      => 0,
+		'quick_step' => 1,
+		'number'     => TRUE,
 	];
 
 	// data structure
@@ -72,6 +90,20 @@ abstract class DataGrid extends Control
 	/** @var array */
 	protected $dataSnippet = [];
 
+	// pager
+
+	/** @persistent */
+	public $currentPage;
+
+	/** @persistent */
+	public $rowCount;
+
+	/** @persistent */
+	public $rowsPerPage;
+
+	/** @var bool */
+	protected $updated;
+
 	// design
 
 	/** @var array */
@@ -79,6 +111,9 @@ abstract class DataGrid extends Control
 
 	/** @var int */
 	protected $actionWidth = 2;
+
+	/** @var array */
+	protected $pagerButtons;
 
 	/** @var string */
 	protected $actitle;
@@ -156,8 +191,6 @@ abstract class DataGrid extends Control
 	{
 		return $this->facade;
 	}
-
-	// data
 
 
 	/**
@@ -351,17 +384,141 @@ abstract class DataGrid extends Control
 		return $this;
 	}
 
+	// data
+
+
+	/**
+	 * @return mixed
+	 */
+	public function getCurrentPage()
+	{
+		if ( !$this->currentPage ) $this->currentPage = 1;
+		return $this->currentPage;
+	}
+
+
+	/**
+	 * @param mixed $currentPage
+	 * @return self (fluent interface)
+	 */
+	public function setCurrentPage( $currentPage )
+	{
+		$this->currentPage = $currentPage;
+		return $this;
+	}
+
+
+	/**
+	 * @return mixed
+	 */
+	public function getRowCount()
+	{
+		if ( !$this->rowCount ) {
+			$this->setRowCount( $this->calculateRowCount() );
+		}
+		return $this->rowCount;
+	}
+
+
+	/**
+	 * @param mixed $rowCount
+	 * @return self (fluent interface)
+	 */
+	public function setRowCount( $rowCount )
+	{
+		$this->rowCount = $rowCount;
+		return $this;
+	}
+
+
+	/**
+	 * @return mixed
+	 */
+	public function getRowsPerPage()
+	{
+		if ( !$this->rowsPerPage ) $this->rowsPerPage = self::ROWS_PER_PAGE;
+		return $this->rowsPerPage;
+	}
+
+
+	/**
+	 * @param mixed $rowsPerPage
+	 * @return self (fluent interface)
+	 */
+	public function setRowsPerPage( $rowsPerPage )
+	{
+		$this->rowsPerPage = $rowsPerPage;
+		return $this;
+	}
+
+
+	public function getPageCount()
+	{
+		return intdiv( $this->getRowCount(), $this->getRowsPerPage() )
+			+ ( $this->getRowCount() % $this->getRowsPerPage() ? 1 : 0 );
+	}
+
+
+	// pager
+
+	public function invalidatePager()
+	{
+		$this->updated = FALSE;
+		return $this;
+	}
+
+
+	public function isUpdated()
+	{
+		return $this->updated;
+	}
+
+
+	public function setUpdated()
+	{
+		$this->updated = TRUE;
+		return $this;
+	}
+
+
+	protected function calculateRowCount()
+	{
+		$dqb = clone $this->dataSource( $this->filtering, $this->sorting );
+		$alias = $dqb->getRootAliases()[ 0 ];
+		$dqb->resetDQLParts( [ 'select', 'orderBy' ] );
+
+		$dqb->select( "COUNT($alias.id)" );
+
+		return (int)$dqb->getQuery()->getSingleScalarResult();
+	}
+
+
+	protected function getData()
+	{
+		if ( !$this->isUpdated() ) {
+			$this->getRowCount();
+			$this->setUpdated();
+		}
+
+		$dqb = clone $this->dataSource( $this->filtering, $this->sorting );
+
+		$dqb->setFirstResult( ( $this->getCurrentPage() - 1 ) * $this->getRowsPerPage() );
+		$dqb->setMaxResults( $this->getRowsPerPage() );
+
+		return $dqb->getQuery()->getResult();
+	}
+
 
 	/**
 	 * Data source prototype
 	 *
 	 * @param array $filter
 	 * @param array $sorting
-	 * @return array
+	 * @return QueryBuilder
 	 */
 	public function dataSource( $filter, $sorting )
 	{
-		return [];
+		return new QueryBuilder();
 	}
 
 	// design
@@ -390,6 +547,57 @@ abstract class DataGrid extends Control
 	{
 		$this->labels[ $name ] = $label;
 		return $this;
+	}
+
+
+	/**
+	 * @return array
+	 */
+	public function getPagerButtons()
+	{
+		if ( !$this->pagerButtons ) $this->pagerButtons = self::PAGER_BUTTONS;
+		return $this->pagerButtons;
+	}
+
+
+	/**
+	 * Customize pager look
+	 *
+	 * @param bool $first
+	 * @param bool $last
+	 * @param int $quick
+	 * @param int $quickStep
+	 * @param bool $number
+	 * @return self (fluent interface)
+	 */
+	public function setPagerButtons( $first = FALSE,
+	                                 $last = FALSE,
+	                                 $quick = 0,
+	                                 $quickStep = 1,
+	                                 $number = TRUE
+	)
+	{
+		// quick buttons only odd number, 3 to 15
+		if ( $quick > 0 && $quick < 3 || $quick > 15 )
+			throw new InvalidArgumentException( "Define 3 to 15 quick buttons." );
+		if ( $quick % 2 === 0 )
+			throw new InvalidArgumentException( "Define only odd number of quick buttons." );
+
+		$this->pagerButtons = [
+			'first'      => $first,
+			'last'       => $last,
+			'quick'      => $quick,
+			'quick_step' => $quickStep,
+			'number'     => $number,
+		];
+		return $this;
+	}
+
+
+	public function switchPage( $page = 1 )
+	{
+		$this->setCurrentPage( $page );
+		$this->redrawControl( 'grid' );
 	}
 
 	// template / JS
@@ -483,6 +691,22 @@ abstract class DataGrid extends Control
 			case self::CMD[ 'RESET_SORT' ]:
 				$this->resetSort();
 				$this->redrawControl( 'grid' );
+				break;
+			case self::CMD[ 'PG_FIRST' ]:
+				$this->switchPage( 1 );
+				break;
+			case self::CMD[ 'PG_PREV' ]:
+				$this->switchPage( $this->getCurrentPage() - 1 );
+				break;
+			case self::CMD[ 'PG_NEXT' ]:
+				$this->switchPage( $this->getCurrentPage() + 1 );
+				break;
+			case self::CMD[ 'PG_LAST' ]:
+				$this->switchPage( $this->getPageCount() );
+				break;
+			case self::CMD[ 'PG_QUICK' ]:
+				$this->switchPage( $id );
+				break;
 		}
 	}
 
@@ -516,9 +740,13 @@ abstract class DataGrid extends Control
 		$template->sorting = $this->sorting;
 		$template->filtering = $this->filtering;
 		$template->id = $this->id;
+		$template->pgbtn = $this->getPagerButtons();
+		$template->currentPage = $this->getCurrentPage();
+		$template->rowsPerPage = $this->getRowsPerPage();
+		$template->pageCount = $this->getPageCount();
 
 		if ( count( $this->dataSnippet ) ) $template->data = $this->dataSnippet;
-		else $template->data = $this->dataSource( $this->filtering, $this->sorting );
+		else $template->data = $this->getData();
 
 		$template->render();
 	}
