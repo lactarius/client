@@ -388,7 +388,7 @@ abstract class DataGrid extends Control
 
 
 	/**
-	 * @return mixed
+	 * @return int
 	 */
 	public function getCurrentPage()
 	{
@@ -413,9 +413,7 @@ abstract class DataGrid extends Control
 	 */
 	public function getRowCount()
 	{
-		if ( !$this->rowCount ) {
-			$this->setRowCount( $this->calculateRowCount() );
-		}
+		if ( !$this->rowCount ) $this->setRowCount( $this->calculateRowCount() );
 		return $this->rowCount;
 	}
 
@@ -452,6 +450,9 @@ abstract class DataGrid extends Control
 	}
 
 
+	/**
+	 * @return int
+	 */
 	public function getPageCount()
 	{
 		return intdiv( $this->getRowCount(), $this->getRowsPerPage() )
@@ -461,6 +462,10 @@ abstract class DataGrid extends Control
 
 	// pager
 
+
+	/**
+	 * @return self (fluent interface)
+	 */
 	public function invalidatePager()
 	{
 		$this->updated = FALSE;
@@ -468,12 +473,18 @@ abstract class DataGrid extends Control
 	}
 
 
+	/**
+	 * @return bool
+	 */
 	public function isUpdated()
 	{
 		return $this->updated;
 	}
 
 
+	/**
+	 * @return self (fluent interface)
+	 */
 	public function setUpdated()
 	{
 		$this->updated = TRUE;
@@ -481,6 +492,9 @@ abstract class DataGrid extends Control
 	}
 
 
+	/**
+	 * @return int
+	 */
 	protected function calculateRowCount()
 	{
 		$dqb = clone $this->dataSource( $this->filtering, $this->sorting );
@@ -493,6 +507,9 @@ abstract class DataGrid extends Control
 	}
 
 
+	/**
+	 * @return array
+	 */
 	protected function getData()
 	{
 		if ( !$this->isUpdated() ) {
@@ -594,10 +611,15 @@ abstract class DataGrid extends Control
 	}
 
 
+	/**
+	 * @param int $page
+	 * @return self (fluent interface)
+	 */
 	public function switchPage( $page = 1 )
 	{
 		$this->setCurrentPage( $page );
 		$this->redrawControl( 'grid' );
+		return $this;
 	}
 
 	// template / JS

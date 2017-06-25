@@ -13,6 +13,10 @@ use Kdyby\Doctrine\QueryBuilder;
 class CommodityGrid extends DataGrid implements IDataGrid
 {
 
+	/**
+	 * CommodityGrid constructor.
+	 * @param ShopFacade $facade
+	 */
 	public function __construct( ShopFacade $facade )
 	{
 		parent::__construct( $facade );

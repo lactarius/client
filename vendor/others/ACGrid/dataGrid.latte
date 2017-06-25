@@ -171,6 +171,55 @@
 	{define inline-buttons}
 	{/define}
 
+	{* ====== PAGER ============================== *}
+
+	{define pager}
+		<ul class="pagination pull-right bottom-top-no-margin">
+			<li n:if="$pgbtn['first']" class="{if $currentPage == 1}disabled{/if}">
+				<a n:href="server!, $cmd['PG_FIRST']" class="ajax">
+					<span class="glyphicon glyphicon-fast-backward"></span>
+				</a>
+			</li>
+			<li class="{if $currentPage == 1}disabled{/if}">
+				<a n:href="server!, $cmd['PG_PREV']" class="ajax">
+					<span class="glyphicon glyphicon-backward"></span>
+				</a>
+			</li>
+			{if $pgbtn['number']}
+				<li>
+					<span contenteditable="true">{$currentPage}</span>
+					<span class="hidden">
+											<a n:href="server!, $cmd['PG_QUICK'], xxxxx" class="ajax" id="pg-num"></a>
+												</span>
+				</li>
+			{/if}
+			{for $i = 0;$i < $pgbtn['quick'];$i++}
+				{var $qpage = 1 + $i * $pgbtn['quick_step']}
+				<li class="{if $qpage > $pageCount}disabled
+														{elseif $qpage == $currentPage} active{/if}">
+					{if $qpage == $currentPage}
+						<span>{$qpage}</span>
+					{else}
+						<a n:href="server!, $cmd['PG_QUICK'], $qpage" class="ajax">
+							{$qpage}
+						</a>
+					{/if}
+				</li>
+			{/for}
+			<li class="{if $currentPage == $pageCount}disabled{/if}">
+				<a n:href="server!, $cmd['PG_NEXT']" class="ajax">
+					<span class="glyphicon glyphicon-forward"></span>
+				</a>
+			</li>
+			<li n:if="$pgbtn['last']"
+					class="{if $currentPage == $pageCount}disabled{/if}">
+				<a n:href="server!, $cmd['PG_LAST']" class="ajax">
+					<span class="glyphicon glyphicon-fast-forward"></span>
+				</a>
+			</li>
+		</ul>
+	{/define}
+
 	{* ====== GRID =============================== *}
 
 	{form editForm}
@@ -195,52 +244,7 @@
 						<tfoot>
 						<tr>
 							<td colspan="{$colspan}">
-								{snippet pager}
-									<ul class="pagination pull-right bottom-top-no-margin">
-										<li n:if="$pgbtn['first']" class="{if $currentPage == 1}disabled{/if}">
-											<a n:href="server!, $cmd['PG_FIRST']" class="ajax">
-												<span class="glyphicon glyphicon-fast-backward"></span>
-											</a>
-										</li>
-										<li class="{if $currentPage == 1}disabled{/if}">
-											<a n:href="server!, $cmd['PG_PREV']" class="ajax">
-												<span class="glyphicon glyphicon-backward"></span>
-											</a>
-										</li>
-										{if $pgbtn['number']}
-											<li>
-												<span contenteditable="true">{$currentPage}</span>
-												<span class="hidden">
-											<a n:href="server!, $cmd['PG_QUICK'], xxxxx" class="ajax" id="nr"></a>
-												</span>
-											</li>
-										{/if}
-										{for $i = 0;$i < $pgbtn['quick'];$i++}
-											{var $qpage = 1 + $i * $pgbtn['quick_step']}
-											<li class="{if $qpage > $pageCount}disabled
-														{elseif $qpage == $currentPage} active{/if}">
-												{if $qpage == $currentPage}
-													<span>{$qpage}</span>
-												{else}
-													<a n:href="server!, $cmd['PG_QUICK'], $qpage" class="ajax">
-														{$qpage}
-													</a>
-												{/if}
-											</li>
-										{/for}
-										<li class="{if $currentPage == $pageCount}disabled{/if}">
-											<a n:href="server!, $cmd['PG_NEXT']" class="ajax">
-												<span class="glyphicon glyphicon-forward"></span>
-											</a>
-										</li>
-										<li n:if="$pgbtn['last']"
-												class="{if $currentPage == $pageCount}disabled{/if}">
-											<a n:href="server!, $cmd['PG_LAST']" class="ajax">
-												<span class="glyphicon glyphicon-fast-forward"></span>
-											</a>
-										</li>
-									</ul>
-								{/snippet}
+								{include #pager $currentPage, $pageCount, $pgbtn, $cmd}
 							</td>
 						</tr>
 						</tfoot>
